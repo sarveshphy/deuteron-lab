@@ -91,13 +91,42 @@ td.empty { white-space: normal; color: var(--muted); }
 .eq { font-family: var(--f-mono); font-size: 13.5px; background: var(--bg); border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: pre; line-height: 1.6; }
 .prose h3 { margin-top: 6px; }
 .prose ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+a { color: var(--accent); }
+.help summary { cursor: pointer; font-size: 13px; color: var(--accent); }
+.help p { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.guide { background: var(--panel); border: 1px solid var(--accent); border-left: 4px solid var(--accent); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 6px); z-index: 5; box-shadow: 0 4px 14px color-mix(in srgb, var(--ink) 10%, transparent); }
+.guide p { margin: 0; max-width: 80ch; }
+.guide-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; }
+.dots { display: flex; gap: 5px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.dot.past { background: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.dot.now { background: var(--accent); }
+.guide-qa { background: var(--bg); border-radius: 6px; padding: 9px 12px; display: grid; gap: 6px; }
+.guide-q { font-weight: 600; }
+.guide-qa summary { cursor: pointer; color: var(--accent); font-size: 14px; }
+.guide-qa details p { margin-top: 6px; }
+button.btn:disabled { opacity: .4; cursor: default; }
+.linkbtn { background: none; border: none; color: var(--muted); font: 14px var(--f-body); text-decoration: underline; cursor: pointer; padding: 6px; }
+.lessons { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; }
+.lesson { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 10px; align-content: space-between; }
+.lesson.done { border-color: color-mix(in srgb, var(--good) 50%, var(--line)); }
+.lesson-head { display: flex; gap: 12px; align-items: flex-start; }
+.lesson-head p { margin: 2px 0 0; }
+.lesson-no { font: 700 22px/1 var(--f-display); font-stretch: 80%; color: var(--accent); min-width: 22px; }
+.donemark { color: var(--good); font-weight: 600; font-size: 14px; }
+.interpret { gap: 4px; border-left: 3px solid var(--amber); }
+.interpret p { margin: 4px 0 0; max-width: 90ch; }
+textarea { width: 100%; font: 12px var(--f-mono); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; padding: 8px; }
+@media (max-width: 900px) { main.bench { order: -1; } .guide { position: static; } }
+@media (max-height: 760px) { .guide { position: static; } }
+.foot { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
 @media (prefers-reduced-motion: no-preference) { .sys, .tab, button.btn { transition: border-color .15s, background .15s, color .15s; } }
 </style>
 
 <div class="wrap">
 <header class="top">
   <h1>Two-Nucleon <span>Schrödinger</span> Lab</h1>
-  <p class="tag">Pick a nucleon pair and an interaction, then solve the radial Schrödinger equation for bound states, wavefunctions, phase shifts and scattering lengths. Units: MeV and fm.</p>
+  <p class="tag">Pick a nucleon pair and an interaction, then solve the radial Schrödinger equation for bound states, wavefunctions, phase shifts and scattering lengths. New here? Open <b>Lessons</b> and follow one step by step. Units: MeV and fm.</p>
 </header>
 
 <div class="shell">
@@ -105,6 +134,8 @@ td.empty { white-space: normal; color: var(--muted); }
   <section class="box">
     <div class="label">1 · System</div>
     <div class="sys-list" id="sys-list"></div>
+    <details class="help"><summary>Which system should I pick?</summary>
+      <p><b>Deuteron</b>: the only bound two-nucleon state (spin 1, isospin 0). <b>np singlet</b>: neutron and proton with opposite spins; unbound. <b>Diproton</b> and <b>Dineutron</b>: two identical nucleons, also unbound; the diproton adds Coulomb repulsion. <b>Custom pair</b>: any two particles. <b>n + ortho/para H₂</b>: the classic experiment that measured the spin dependence of the np force.</p></details>
   </section>
 
   <section class="box" id="custom-box" hidden>
@@ -126,6 +157,8 @@ td.empty { white-space: normal; color: var(--muted); }
     <label class="field" for="lam"><span>λ strength factor</span><input id="lam" type="number" step="any"></label>
     <label class="field" id="lwave-row" for="lwave"><span>Partial wave</span><select id="lwave"></select></label>
     <p class="warnline" id="pauli" hidden>Two identical nucleons in a spin singlet need even ℓ (Pauli). Odd ℓ is shown for study only.</p>
+    <details class="help"><summary>What do these controls mean?</summary>
+      <p><b>V₀</b> sets how deep (strong) the attraction is; <b>R</b> or <b>a</b> sets its range. <b>λ</b> multiplies the whole nuclear potential: λ = 1 is the model as published, λ = 1.2 is 20% stronger. <b>Partial wave ℓ</b> is the orbital angular momentum; ℓ &gt; 0 adds a centrifugal barrier. <b>Fit</b> adjusts one parameter until the model reproduces the measured binding energy or scattering length.</p></details>
     <div id="fit-row" class="row">
       <span class="note">Fit</span>
       <select id="fit-key" aria-label="Parameter to fit" style="width:auto;flex:1 1 140px"></select>
@@ -141,16 +174,43 @@ td.empty { white-space: normal; color: var(--muted); }
       <label class="field" for="n-rmatch"><span>match r <em>fm</em></span><input id="n-rmatch" type="number" step="1" min="5"></label>
       <label class="field" for="n-maxStates"><span>max states</span><input id="n-maxStates" type="number" step="1" min="1"></label>
     </div>
+    <details class="help"><summary>Do I need to change these?</summary>
+      <p>Usually not. <b>h</b> is the grid spacing; smaller is more accurate but slower. <b>r<sub>max</sub></b> is the size of the box the bound state must fit into; increase it for very weakly bound states. <b>match r</b> is where the scattering solution is joined to free waves; it must lie outside the force. Results that change when you halve h or double r<sub>max</sub> are not yet converged.</p></details>
     <button class="btn primary" id="solve" type="button">Solve</button>
   </section>
 </aside>
 
 <main class="bench">
-  <div class="benchhead"><span class="crumb" id="crumb"></span><span class="status" id="status" role="status">Loading…</span></div>
+  <div class="benchhead"><span class="crumb" id="crumb"></span><span class="row"><span class="status" id="status" role="status">Loading…</span><button class="btn" id="save-note" type="button">Save result to notebook</button></span></div>
+  <section class="guide" id="guide" hidden aria-live="polite">
+    <div class="guide-top"><span class="label" id="guide-where"></span><span class="dots" id="guide-dots"></span></div>
+    <h2 id="guide-title"></h2>
+    <p id="guide-text"></p>
+    <div id="guide-qa" class="guide-qa">
+      <p class="guide-q"><span class="label">Question</span> <span id="guide-q"></span></p>
+      <details id="guide-ans"><summary>Show answer</summary><p id="guide-a"></p></details>
+    </div>
+    <div class="row">
+      <button class="btn" id="guide-back" type="button">← Back</button>
+      <button class="btn primary" id="guide-next" type="button">Next step →</button>
+      <button class="btn" id="guide-redo" type="button">Set this step up again</button>
+      <button class="linkbtn" id="guide-exit" type="button">Leave lesson</button>
+    </div>
+  </section>
   <nav class="tabs" id="tabs" role="tablist"></nav>
+
+  <section class="panel" id="panel-learn" hidden>
+    <div class="card prose">
+      <h2>Guided lessons</h2>
+      <p>Each lesson sets up the solver for you, one step at a time, and asks a question about what you see. Try to answer before opening the answer. A guide bar stays at the top of the page while you work, so you can look at any tab and come back. Progress is kept in this browser.</p>
+      <p class="note" id="lesson-progress"></p>
+    </div>
+    <div class="lessons" id="lesson-list"></div>
+  </section>
 
   <section class="panel" id="panel-bound">
     <div class="chips" id="bound-summary"></div>
+    <div class="card interpret"><span class="label">What you are seeing</span><div id="interpret"></div></div>
     <p class="note" id="exp-compare"></p>
     <div class="two">
       <div class="card"><h2>Levels in the potential</h2><canvas id="cv-levels" aria-label="Effective potential with bound-state energies"></canvas></div>
@@ -232,6 +292,16 @@ A_H₂ = κ [ 2a_c + (a_t − a_s)/2 · σ_n·S ]
     </div>
   </section>
 
+  <section class="panel" id="panel-notes" hidden>
+    <div class="card">
+      <h2>Lab notebook</h2>
+      <p class="note">Every time you press "Save result to notebook", the current system, parameters and results are added here. Copy the table into a spreadsheet or your lab report.</p>
+      <div class="row"><button class="btn primary" id="notes-copy" type="button">Copy table</button><button class="btn" id="notes-clear" type="button">Clear notebook</button></div>
+      <textarea id="notes-text" hidden rows="6" aria-label="Notebook as text"></textarea>
+      <div class="tablewrap"><table id="notes-table"></table></div>
+    </div>
+  </section>
+
   <section class="panel" id="panel-theory" hidden>
     <div class="card prose">
       <h2>What the lab solves</h2>
@@ -250,6 +320,16 @@ A_H₂ = κ [ 2a_c + (a_t − a_s)/2 · σ_n·S ]
       <div class="eq">k cot δ₀ = −1/a + ½ r₀ k² + …                               (neutral)
 C²(η) k cot δ₀ + (2/a_B) h(η) = −1/a_pp + ½ r₀ k² + …        (pp)</div>
       <p>For neutral S-waves a and r₀ come exactly from the zero-energy solution; otherwise they are fitted from low-energy phase shifts. The ERE pole k = iκ with κ = [1 − √(1 − 2r₀/a)]/r₀ is a bound state for κ &gt; 0 and a virtual state for κ &lt; 0, as in the np singlet and nn systems.</p>
+      <h3>Glossary</h3>
+      <ul>
+        <li><b>Bound state</b>: a solution with E &lt; 0 whose wavefunction vanishes at large r.</li>
+        <li><b>Scattering length a</b>: the zero-energy limit of scattering, σ(0) = 4πa². a &gt; 0 with a bound state nearby; large negative a means the force almost binds.</li>
+        <li><b>Effective range r₀</b>: measures the range of the force as seen in low-energy scattering.</li>
+        <li><b>Phase shift δ_ℓ</b>: how much the potential shifts the outgoing wave in partial wave ℓ. Attraction gives δ &gt; 0, repulsion δ &lt; 0.</li>
+        <li><b>Virtual state</b>: a pole of the scattering amplitude just above threshold on the unphysical sheet; not a real state, but it makes low-energy scattering very strong.</li>
+        <li><b>Tensor force</b>: a force that depends on the angle between the spins and the line joining the nucleons; it mixes S and D waves.</li>
+        <li><b>λ_c</b>: the factor by which the nuclear potential must be multiplied to just produce a bound state.</li>
+      </ul>
       <h3>Exercises for students</h3>
       <ul>
         <li>Fit a square well to the deuteron at R = 1.5, 2.0 and 2.5 fm. How do r_d and the effective range change? Compare with the measured r₀ = 1.75 fm.</li>
@@ -264,6 +344,7 @@ C²(η) k cot δ₀ + (2/a_B) h(η) = −1/a_pp + ½ r₀ k² + …        (pp)<
   </section>
 </main>
 </div>
+<footer class="foot">Two-Nucleon Schrödinger Lab · Dr Sarvesh Kumar · Department of Physics &amp; Astrophysics, University of Delhi</footer>
 </div>
 
 <script>/* ===================================================================
@@ -969,6 +1050,7 @@ C²(η) k cot δ₀ + (2/a_B) h(η) = −1/a_pp + ½ r₀ k² + …        (pp)<
     s.pots.forEach((p) => { S.per[k].params[p] = defaultParams(k, p); });
   });
   S.per.custom.params.woodssaxon = { V0: 50, R: 2.0, d: 0.5 };
+  S.tab = 'learn';
   try { const t = localStorage.getItem('nnlab-tab'); if (t) S.tab = t; } catch (e) { /* storage unavailable */ }
 
   const cur = () => S.per[S.sys];
@@ -1164,14 +1246,14 @@ C²(η) k cot δ₀ + (2/a_B) h(η) = −1/a_pp + ½ r₀ k² + …        (pp)<
   }
 
   /* ---------------- tabs ---------------- */
-  const TABS = [['bound', 'Bound states'], ['scat', 'Scattering'], ['scan', 'Parameter scan'], ['h2', 'n + H₂'], ['theory', 'Theory & method']];
+  const TABS = [['learn', 'Lessons'], ['bound', 'Bound states'], ['scat', 'Scattering'], ['scan', 'Parameter scan'], ['h2', 'n + H₂'], ['notes', 'Notebook'], ['theory', 'Theory & method']];
   function renderTabs() {
     const bar = $('#tabs'); bar.innerHTML = '';
     TABS.forEach(([k, n]) => {
       if (sysDef().h2 && (k === 'bound' || k === 'scat' || k === 'scan')) return;
       const b = document.createElement('button'); b.type = 'button'; b.role = 'tab'; b.id = 'tab-' + k;
       b.className = 'tab' + (S.tab === k ? ' on' : ''); b.textContent = n; b.setAttribute('aria-selected', S.tab === k);
-      b.onclick = () => { S.tab = k; try { localStorage.setItem('nnlab-tab', k); } catch (e) { /* ignore */ } renderTabs(); showPanel(); if (k === 'scat' && !S.last.scat) runScattering(); if (k === 'scan' && !S.last.scan) runScan(); };
+      b.onclick = () => { S.tab = k; try { localStorage.setItem('nnlab-tab', k); } catch (e) { /* ignore */ } renderTabs(); showPanel(); if (k === 'scat' && !S.last.scat) runScattering(); if (k === 'scan' && !S.last.scan) runScan(); if (k === 'notes') renderNotebook(); if (k === 'learn') renderLessonList(); };
       bar.appendChild(b);
     });
     showPanel();
@@ -1297,6 +1379,7 @@ C²(η) k cot δ₀ + (2/a_B) h(η) = −1/a_pp + ½ r₀ k² + …        (pp)<
         : 'A purely central potential gives a pure S-wave deuteron: Q = 0, η = 0 and μ_d = μ_p + μ_n. The measured Q and μ_d are the classic evidence for the tensor force. Switch to a Reid or OPEP model to see them appear.';
     } else dbox.hidden = true;
     $('#lam-crit').textContent = '';
+    interpret(ch, spec, states, sp, m);
   }
   function chip(kind, big, small) { return '<div class="chip ' + kind + '"><span class="chip-big">' + big + '</span><span class="chip-small">' + small + '</span></div>'; }
 
@@ -1470,6 +1553,261 @@ C²(η) k cot δ₀ + (2/a_B) h(η) = −1/a_pp + ½ r₀ k² + …        (pp)<
     };
   }
 
+  /* ---------------- "what you are seeing" interpretation ---------------- */
+  function interpret(ch, spec, states, sp, m) {
+    const box = $('#interpret'), f = L.fOf(m.mu);
+    const lines = [];
+    if (states.length) {
+      const st = states[0], kap = Math.sqrt(-f * st.E), size = 1 / kap;
+      // probability in the classically forbidden region (V_eff > E)
+      const { r, u, w } = st.wf, h = r[1] - r[0];
+      let pf = 0;
+      for (let i = 1; i < r.length; i++) {
+        let vu, vw = 0;
+        if (ch.type === 'coupled') { const M = L.veffCoupled(ch, r[i]); vu = M[0]; vw = M[2]; }
+        else vu = L.veffSingle(ch, r[i]);
+        if (vu > st.E) pf += u[i] * u[i];
+        if (w && vw > st.E) pf += w[i] * w[i];
+      }
+      pf *= h;
+      lines.push('<b>' + states.length + ' bound state' + (states.length > 1 ? 's' : '') + '.</b> The ground state is bound by B = ' + fmt(-st.E, 4) + ' MeV.');
+      lines.push('Outside the force, u(r) decays as e<sup>−κr</sup> with κ = √(2μB)/ħ = ' + fmt(kap, 4) + ' fm⁻¹, so the system extends to about 1/κ = ' + fmt(size, 2) + ' fm.');
+      lines.push('<b>' + Math.round(100 * pf) + '%</b> of the probability lies in the classically forbidden region where V<sub>eff</sub> &gt; E. A classical particle could never be there; quantum mechanically it tunnels.');
+      if (states.length > 1) lines.push('Excited states have one more node each (see the "nodes" column) and reach farther out.');
+      if (S.sys === 'deut' && ch.type === 'coupled') { const o = L.deuteronObservables(ch, st); lines.push('The tensor force mixes in ' + fmt(100 * o.PD, 2) + '% of D-wave (dashed curve). That admixture is what gives the deuteron its quadrupole moment Q = ' + fmt(o.Q, 3) + ' fm².'); }
+    } else {
+      lines.push('<b>No bound state.</b> The ' + (spec.l ? 'centrifugal barrier and ' : '') + (ch.Z ? 'Coulomb repulsion and ' : '') + 'kinetic energy win over the attraction.');
+      if (sp && sp.a < 0) lines.push('The scattering length a = ' + fmt(sp.a, 2) + ' fm is negative: the force is attractive but just too weak to bind. ' + (Math.abs(sp.a) > 10 ? 'Because |a| is much larger than the range of the force, the system sits close to binding.' : ''));
+      lines.push('Press <b>Find binding threshold</b> below to see how much stronger the force must be to bind.');
+    }
+    if (spec.l > 0) lines.push('For ℓ = ' + spec.l + ' the centrifugal term ħ²ℓ(ℓ+1)/2μr² adds a repulsive barrier near the origin, visible in the potential plot.');
+    box.innerHTML = lines.map((t) => '<p>' + t + '</p>').join('');
+  }
+
+  /* ---------------- guided lessons ---------------- */
+  const LESSONS = [
+    { id: 'sq', title: 'The deuteron in a square well', goal: 'Find how deep and how wide the n–p attraction must be, and how spread out the deuteron is.',
+      steps: [
+        { set: { sys: 'deut', pot: 'square', reset: true, tab: 'bound' },
+          text: 'The n–p force is modelled as a square well of radius R = 2 fm. Its depth V₀ = 36.6 MeV was chosen so that the binding energy is B = 2.2246 MeV. Check the summary: one bound state at E ≈ −2.2246 MeV.' },
+        { text: 'Look at the radial wavefunction u(r). Inside the well it curves like a sine; outside it decays exponentially. The box "What you are seeing" gives the probability of finding the pair outside the well.',
+          q: 'What fraction of the time are the neutron and proton farther apart than the range of the force?',
+          a: 'About 64%. The deuteron is loosely bound: its size 1/κ ≈ 4.3 fm is about twice the well radius.' },
+        { set: { params: { R: 1.5 }, run: 'fit', fitKey: 'V0' },
+          text: 'The well is now narrowed to R = 1.5 fm and V₀ has been refitted to the same binding energy.',
+          q: 'How did V₀ change? Compute V₀R² for R = 2 fm and for R = 1.5 fm.',
+          a: 'V₀ rises to about 59.7 MeV. V₀R² changes only from 146 to 134 MeV fm². A shallow bound state depends mainly on the well strength V₀R², not on V₀ and R separately.' },
+        { set: { params: { R: 2.5 }, run: 'fit', fitKey: 'V0', tab: 'scat', scat: { Lmax: 0 } },
+          text: 'Now R = 2.5 fm, refitted. Read the effective range r₀ in the Scattering summary.',
+          q: 'Which well radius reproduces the measured effective range r₀ = 1.75 fm?',
+          a: 'r₀ ≈ 1.32 fm at R = 1.5 fm, 1.70 fm at 2.0 fm and 2.05 fm at 2.5 fm, so R ≈ 2.05 fm fits. The binding energy fixes V₀R²; the effective range then fixes R.' },
+        { text: 'Press "Save result to notebook" (top right) after each setting you want to keep. The Notebook tab collects them into a table you can paste into a spreadsheet or lab report.' }
+      ] },
+    { id: 'exc', title: 'Why the deuteron has no excited state', goal: 'Watch bound levels appear as the well deepens, and compare with the real deuteron.',
+      steps: [
+        { set: { sys: 'deut', pot: 'square', reset: true, tab: 'scan', scan: { key: 'V0', from: 10, to: 300, steps: 60 } },
+          text: 'The scan deepens the well from 10 to 300 MeV at fixed R = 2 fm and plots every bound level. New levels appear at E = 0 and dive down.',
+          q: 'At what depths do the first and second levels appear?',
+          a: 'The first near V₀ ≈ 25.6 MeV, where V₀R² = π²ħ²/8μ ≈ 102 MeV fm². The second near V₀ ≈ 230 MeV, where V₀R² = 9π²ħ²/8μ ≈ 921 MeV fm².' },
+        { set: { tab: 'bound', run: 'thresh' },
+          text: 'Back at the deuteron depth V₀ = 36.6 MeV, the binding threshold λ_c has been computed (below the bound-state table).',
+          q: 'What is λ_c, and what does it say about the deuteron?',
+          a: 'λ_c ≈ 0.71: the real force is only about 1.4 times the minimum needed to bind. An excited S-state would need a well about six times deeper, so the deuteron has just one bound state.' },
+        { set: { l: 1, tab: 'bound', run: 'thresh' },
+          text: 'The same well in the P-wave (ℓ = 1). The centrifugal barrier appears in the potential plot.',
+          q: 'How much stronger would the well need to be to bind a P-wave state?',
+          a: 'λ_c ≈ 2.8. A P-wave deuteron would need almost three times the attraction. The deuteron is an S-state, with a small D-state admixture from the tensor force.' }
+      ] },
+    { id: 'tensor', title: 'The tensor force and the quadrupole moment', goal: 'See why Q ≠ 0 proves the nuclear force is not central.',
+      steps: [
+        { set: { sys: 'deut', pot: 'reid3s1', reset: true, tab: 'bound' },
+          text: 'The Reid soft-core potential has a repulsive core, a central part, a tensor part S₁₂ and a spin-orbit part. The tensor force couples the ³S₁ (u) and ³D₁ (w) waves. Compare the observables table with experiment.',
+          q: 'What are the D-state probability P_D and the quadrupole moment Q?',
+          a: 'P_D ≈ 6.5% and Q ≈ 0.280 fm² (measured 0.2859 fm²). μ_d also falls to 0.843 μ_N, below μ_p + μ_n = 0.880 μ_N.' },
+        { set: { sys: 'deut', pot: 'square', reset: true, tab: 'bound' },
+          text: 'Back to the central square well.',
+          q: 'Why is Q exactly zero now?',
+          a: 'A pure S-state is spherically symmetric, so its quadrupole moment vanishes. Only a non-central (tensor) force mixes in the D-state that makes the deuteron slightly cigar-shaped.' },
+        { set: { sys: 'deut', pot: 'reid3s1', reset: true, params: { lamT: 0 }, tab: 'bound' },
+          text: 'Reid again, with the tensor strength set to 0.',
+          q: 'Is the deuteron still bound?',
+          a: 'No. Reid\'s central part alone cannot bind the deuteron; it would need about 2.7 times its strength. Most of the binding comes from the tensor force.' },
+        { set: { sys: 'deut', pot: 'reid3s1', reset: true, tab: 'scan', scan: { key: 'lamT', from: 0, to: 1.5, steps: 40 } },
+          text: 'The scan varies the tensor strength from 0 to 1.5 times Reid\'s value.',
+          q: 'At what tensor strength does the deuteron become bound?',
+          a: 'At about 0.83–0.85 of Reid\'s value (the scan grid gives 0.85). Above that, B grows quickly with the tensor strength: the deuteron depends delicately on the tensor force.' }
+      ] },
+    { id: 'singlet', title: 'The np singlet: a virtual state', goal: 'Understand a large negative scattering length.',
+      steps: [
+        { set: { sys: 'np', pot: 'malfliettjon', reset: true, tab: 'bound' },
+          text: 'The spin-singlet np channel (¹S₀, T = 1) with the Malfliet–Tjon potential, whose attraction is weaker than in the triplet.',
+          q: 'How many bound states are there, and what is the scattering length?',
+          a: 'None. a ≈ −23.6 fm (measured −23.74 fm). A large negative a means the attraction almost, but not quite, binds.' },
+        { text: 'The effective-range expansion puts a pole of the scattering amplitude on the unphysical sheet: a virtual state about 0.067 MeV above threshold (see the summary chips).',
+          q: 'Why does this make low-energy np singlet scattering so strong?',
+          a: 'σ(E → 0) = 4πa² ≈ 70 b, enormous compared with the range of the force (about π·2² ≈ 0.13 b). The near-threshold virtual state dominates low-energy scattering.' },
+        { set: { tab: 'bound', run: 'thresh' },
+          text: 'The binding threshold has been computed.',
+          q: 'What is λ_c?',
+          a: 'λ_c ≈ 1.105: only about 10% more attraction would bind a singlet deuteron.' }
+      ] },
+    { id: 'ppnn', title: 'pp, nn and the Coulomb force', goal: 'Why there is no bound diproton or dineutron.',
+      steps: [
+        { set: { sys: 'pp', pot: 'reid1s0', reset: true, tab: 'bound', run: 'thresh' },
+          text: 'Two protons in ¹S₀: Reid nuclear potential plus Coulomb repulsion. The threshold has been computed.',
+          q: 'What are a_pp and λ_c?',
+          a: 'a_pp ≈ −7.7 fm (measured −7.81 fm) and λ_c ≈ 1.22.' },
+        { set: { sys: 'nn', pot: 'reid1s0', reset: true, tab: 'bound', run: 'thresh' },
+          text: 'The same nuclear potential for two neutrons, with no Coulomb force.',
+          q: 'Compare λ_c and a with the pp case.',
+          a: 'Here a ≈ −17 fm and λ_c ≈ 1.10. Coulomb repulsion raises the threshold from 1.10 to 1.22 and shrinks |a| from about 17 fm to 7.7 fm. The measured a_nn ≈ −18.9 fm against a_np ≈ −23.7 fm reflects a small charge dependence of the nuclear force itself.' },
+        { set: { sys: 'pp', pot: 'reid1s0', reset: true, tab: 'scat', scat: { Lmax: 0 } },
+          text: 'pp ¹S₀ phase shifts compared with the Nijmegen partial-wave analysis (open circles).',
+          q: 'Why does δ turn negative above about 250 MeV?',
+          a: 'At high energy the waves probe short distances, where the repulsive core dominates. A repulsive interaction gives a negative phase shift.' }
+      ] },
+    { id: 'levinson', title: 'Phase shifts and Levinson\'s theorem', goal: 'Count bound states from the phase shift at zero energy.',
+      steps: [
+        { set: { sys: 'deut', pot: 'reid3s1', reset: true, tab: 'scat' },
+          text: 'Deuteron-channel phase shifts from the Reid potential.',
+          q: 'What is δ̄(³S₁) at the lowest energy?',
+          a: 'Close to 180° (π). Levinson\'s theorem: δ(0) − δ(∞) = n_bound·π, and here there is one bound state, the deuteron.' },
+        { set: { sys: 'np', pot: 'malfliettjon', reset: true, tab: 'scat', scat: { Lmax: 0 } },
+          text: 'The np singlet channel.',
+          q: 'What is δ at zero energy, and why does it rise so fast?',
+          a: 'δ(0) = 0: no bound state. It shoots up to about 60° within a few MeV because of the virtual state just above threshold.' },
+        { set: { sys: 'deut', pot: 'square', reset: true, params: { V0: 250 }, tab: 'scat', scat: { Lmax: 0 } },
+          text: 'A deep square well, V₀ = 250 MeV, which has two bound S-states.',
+          q: 'What is δ₀ at threshold?',
+          a: 'About 360° (2π), one π for each bound state.' }
+      ] },
+    { id: 'h2', title: 'Neutrons on ortho- and para-hydrogen', goal: 'Use molecular hydrogen to prove the singlet np state is unbound.',
+      steps: [
+        { set: { sys: 'h2', tab: 'h2', h2: { at: 5.419, as: -23.740 } },
+          text: 'Slow neutrons scatter coherently from both protons of H₂. In para-H₂ the proton spins are paired (S = 0); in ortho-H₂ they are parallel (S = 1).',
+          q: 'What is the ortho/para cross-section ratio?',
+          a: 'About 31: σ(ortho) ≈ 98 b and σ(para) ≈ 3.1 b. In para-H₂ the spin-dependent part cancels, leaving only the small coherent length (3a_t + a_s)/4.' },
+        { set: { sys: 'h2', tab: 'h2', h2: { at: 5.419, as: 23.740 } },
+          text: 'The singlet scattering length has been flipped to +23.74 fm, as it would be if the singlet state were bound.',
+          q: 'What happens to σ(para) and to the ratio?',
+          a: 'σ(para) jumps to about 89 b and the ratio falls to about 1.4. The large measured ratio is how Schwinger and Teller showed that a_s < 0: the singlet deuteron is unbound.' },
+        { set: { sys: 'h2', tab: 'h2', run: 'h2model' },
+          text: 'Now a_t and a_s come from the lab\'s own deuteron and np-singlet models.',
+          q: 'Do the models reproduce the measured ratio?',
+          a: 'Yes, closely, because they reproduce a_t ≈ 5.4 fm and a_s ≈ −23.6 fm. Change the models in the Deuteron or np singlet systems and come back to see the effect.' }
+      ] }
+  ];
+  const G = { lesson: null, step: 0, done: {} };
+  function loadProgress() { try { G.done = JSON.parse(localStorage.getItem('nnlab-done') || '{}'); } catch (e) { G.done = {}; } }
+  function saveProgress() { try { localStorage.setItem('nnlab-done', JSON.stringify(G.done)); } catch (e) { /* ignore */ } }
+
+  function configure(c) {
+    if (c.sys) S.sys = c.sys;
+    if (!SYSTEMS[S.sys].h2) {
+      const st = S.per[S.sys];
+      if (c.pot) st.pot = c.pot;
+      if (c.reset) { st.params[st.pot] = defaultParams(S.sys, st.pot); st.lam = 1; st.l = 0; }
+      if (c.params) Object.assign(st.params[st.pot], c.params);
+      if (c.lam != null) st.lam = c.lam;
+      if (c.l != null) st.l = c.l;
+    }
+    if (c.scan) Object.assign(S.scan, c.scan);
+    if (c.scat) { Object.assign(S.scat, c.scat); ['t-min', 't-max', 't-n', 't-L'].forEach((id, i) => { $('#' + id).value = [S.scat.Tmin, S.scat.Tmax, S.scat.n, S.scat.Lmax][i]; }); }
+    if (c.h2) Object.assign(S.h2, c.h2);
+    if (c.tab) S.tab = c.tab;
+    renderAll();
+    if (c.run === 'fit') { $('#fit-key').value = c.fitKey; doFit(); return; }
+    solveNow();
+    if (c.run === 'thresh') findThreshold();
+    if (c.run === 'h2model') $('#h2-model').click();
+  }
+
+  function renderLessonList() {
+    const box = $('#lesson-list');
+    const n = LESSONS.filter((l) => G.done[l.id]).length;
+    $('#lesson-progress').textContent = n + ' of ' + LESSONS.length + ' lessons completed';
+    box.innerHTML = LESSONS.map((l, i) => '<div class="lesson' + (G.done[l.id] ? ' done' : '') + '"><div class="lesson-head"><span class="lesson-no">' + (i + 1) + '</span><div><h3>' + l.title + '</h3><p class="note">' + l.goal + ' · ' + l.steps.length + ' steps</p></div></div><div class="row">' +
+      (G.done[l.id] ? '<span class="donemark">✓ Completed</span>' : '') +
+      '<button class="btn primary" type="button" data-lesson="' + i + '">' + (G.done[l.id] ? 'Do again' : 'Start lesson') + '</button></div></div>').join('');
+    box.querySelectorAll('[data-lesson]').forEach((b) => { b.onclick = () => startLesson(+b.dataset.lesson); });
+  }
+  function startLesson(i) { G.lesson = i; G.step = 0; enterStep(); }
+  function enterStep() {
+    const st = LESSONS[G.lesson].steps[G.step];
+    if (st.set) configure(st.set);
+    renderGuide();
+    const g = $('#guide'); if (g.getBoundingClientRect().top < 0) g.scrollIntoView({ block: 'start' });
+  }
+  function renderGuide() {
+    const g = $('#guide');
+    if (G.lesson == null) { g.hidden = true; return; }
+    g.hidden = false;
+    const les = LESSONS[G.lesson], st = les.steps[G.step], last = G.step === les.steps.length - 1;
+    $('#guide-where').textContent = 'Lesson ' + (G.lesson + 1) + ' · Step ' + (G.step + 1) + ' of ' + les.steps.length;
+    $('#guide-title').textContent = les.title;
+    $('#guide-dots').innerHTML = les.steps.map((_, i) => '<span class="dot' + (i < G.step ? ' past' : i === G.step ? ' now' : '') + '"></span>').join('');
+    $('#guide-text').textContent = st.text;
+    const qa = $('#guide-qa');
+    if (st.q) { qa.hidden = false; $('#guide-q').textContent = st.q; $('#guide-a').textContent = st.a; $('#guide-ans').open = false; }
+    else qa.hidden = true;
+    $('#guide-redo').hidden = !st.set;
+    $('#guide-back').disabled = G.step === 0;
+    $('#guide-next').textContent = last ? 'Finish lesson ✓' : 'Next step →';
+  }
+  function guideNext() {
+    const les = LESSONS[G.lesson];
+    if (G.step < les.steps.length - 1) { G.step++; enterStep(); return; }
+    G.done[les.id] = true; saveProgress();
+    const nxt = G.lesson + 1;
+    G.lesson = null; renderGuide();
+    S.tab = 'learn'; try { localStorage.setItem('nnlab-tab', 'learn'); } catch (e) { /* ignore */ }
+    renderTabs(); renderLessonList();
+    setStatus('Lesson completed.' + (nxt < LESSONS.length ? ' Next up: ' + LESSONS[nxt].title + '.' : ' All lessons done.'));
+  }
+  $('#guide-next').onclick = guideNext;
+  $('#guide-back').onclick = () => { if (G.step > 0) { G.step--; enterStep(); } };
+  $('#guide-redo').onclick = () => enterStep();
+  $('#guide-exit').onclick = () => { G.lesson = null; renderGuide(); };
+
+  /* ---------------- lab notebook ---------------- */
+  let NOTES = [];
+  function loadNotes() { try { NOTES = JSON.parse(localStorage.getItem('nnlab-notes') || '[]'); } catch (e) { NOTES = []; } }
+  function storeNotes() { try { localStorage.setItem('nnlab-notes', JSON.stringify(NOTES)); } catch (e) { /* ignore */ } }
+  const NOTE_COLS = ['#', 'System', 'Channel', 'Potential', 'Parameters', 'λ', 'Bound states', 'E₀ (MeV)', 'a (fm)', 'r₀ (fm)', 'Q (fm²)', 'P_D (%)'];
+  function saveNote() {
+    if (sysDef().h2) {
+      const r = L.orthoPara(S.h2.at, S.h2.as, S.h2.mf);
+      NOTES.push(['', 'n + H₂', '—', 'Schwinger–Teller', 'a_t=' + S.h2.at + ', a_s=' + S.h2.as, '—', '—', '—', '—', '—', 'σpara=' + fmt(r.para, 3) + ' b', 'σortho=' + fmt(r.ortho, 2) + ' b']);
+    } else {
+      const b = S.last.bound; if (!b) { setStatus('Solve first, then save.', true); return; }
+      const st = b.bs.states, sp = S.last.sp, pr = b.spec.params;
+      let Q = '—', PD = '—';
+      if (S.sys === 'deut' && st.length) { const o = L.deuteronObservables(b.ch, st[0]); Q = fmt(b.ch.type === 'coupled' ? o.Q : 0, 4); PD = fmt(100 * o.PD, 3); }
+      NOTES.push(['', sysDef().name, channelLabel(), potDef(b.spec.pot).name, Object.entries(pr).map(([k, v]) => k + '=' + (+(+v).toPrecision(6))).join(', ') || '(fixed)', String(b.spec.lam), String(st.length),
+        st.length ? fmt(st[0].E, 6) : 'unbound', sp ? fmt(sp.a, 4) : '—', sp ? fmt(sp.r0, 4) : '—', Q, PD]);
+    }
+    storeNotes(); renderNotebook();
+    setStatus('Saved as entry ' + NOTES.length + ' in the notebook.');
+  }
+  function renderNotebook() {
+    const t = $('#notes-table');
+    if (!NOTES.length) { t.innerHTML = '<tbody><tr><td class="empty">No entries yet. Solve a system, then press "Save result to notebook". Entries stay in this browser until you clear them.</td></tr></tbody>'; return; }
+    t.innerHTML = '<thead><tr>' + NOTE_COLS.map((c) => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>' +
+      NOTES.map((r, i) => '<tr><td>' + (i + 1) + '</td>' + r.slice(1).map((c, j) => '<td' + (j >= 5 ? ' class="num"' : '') + '>' + c + '</td>').join('') + '</tr>').join('') + '</tbody>';
+  }
+  function copyNotes() {
+    const txt = [NOTE_COLS.join('\t'), ...NOTES.map((r, i) => [i + 1, ...r.slice(1)].join('\t'))].join('\n');
+    const done = () => setStatus('Notebook copied. Paste it into Excel, Google Sheets or your report.');
+    const fallback = () => { const ta = $('#notes-text'); ta.hidden = false; ta.value = txt; ta.focus(); ta.select(); setStatus('Copying is blocked here. The text is selected below: press Ctrl+C.'); };
+    try { navigator.clipboard.writeText(txt).then(done, fallback); } catch (e) { fallback(); }
+  }
+  let clearArmed = false;
+  function clearNotes() {
+    const b = $('#notes-clear');
+    if (!clearArmed) { clearArmed = true; b.textContent = 'Click again to delete all entries'; setTimeout(() => { clearArmed = false; b.textContent = 'Clear notebook'; }, 4000); return; }
+    clearArmed = false; b.textContent = 'Clear notebook'; NOTES = []; storeNotes(); renderNotebook(); setStatus('Notebook cleared.');
+  }
+
   /* ---------------- boot ---------------- */
   function renderAll() { renderSystems(); renderInteraction(); renderTabs(); renderScanControls(); }
   $('#solve').onclick = solveNow;
@@ -1480,7 +1818,13 @@ C²(η) k cot δ₀ + (2/a_B) h(η) = −1/a_pp + ½ r₀ k² + …        (pp)<
   $('#scan-run').onclick = () => { setStatus('Scanning…'); setTimeout(() => { runScan(); setStatus('Scan finished.'); }, 20); };
   ['t-min', 't-max', 't-n', 't-L'].forEach((id, i) => { $('#' + id).value = [S.scat.Tmin, S.scat.Tmax, S.scat.n, S.scat.Lmax][i]; });
   bindH2();
+  $('#save-note').onclick = saveNote;
+  $('#notes-copy').onclick = copyNotes;
+  $('#notes-clear').onclick = clearNotes;
+  loadProgress(); loadNotes();
   renderAll();
   solveNow();
+  renderLessonList();
+  renderGuide();
 })();
 </script>
