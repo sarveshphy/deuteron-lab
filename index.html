@@ -1,0 +1,1486 @@
+<title>Two-Nucleon Schrödinger Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: instrument console. Fixed-width control rack on the left, results bench on the right; stacks on phones. */
+:root {
+  --bg: #eef1f4; --panel: #ffffff; --ink: #142029; --muted: #586674; --line: #d5dce3; --grid: #e6ebef;
+  --accent: #0d6a7f; --accent-ink: #ffffff; --amber: #b8691a;
+  --s1: #0d6a7f; --s2: #b8691a; --s3: #6b4fa8; --s4: #2f8549; --s5: #b2384a; --s6: #586674;
+  --good: #2f8549; --warn: #b8691a; --bad: #b2384a;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0c1217; --panel: #131c23; --ink: #e2e8ed; --muted: #94a3b0; --line: #26333d; --grid: #1c2730;
+  --accent: #47b3c9; --accent-ink: #06161b; --amber: #e5a052;
+  --s1: #47b3c9; --s2: #e5a052; --s3: #a78bdc; --s4: #62bf7e; --s5: #e46d7d; --s6: #94a3b0;
+  --good: #62bf7e; --warn: #e5a052; --bad: #e46d7d; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0c1217; --panel: #131c23; --ink: #e2e8ed; --muted: #94a3b0; --line: #26333d; --grid: #1c2730;
+  --accent: #47b3c9; --accent-ink: #06161b; --amber: #e5a052;
+  --s1: #47b3c9; --s2: #e5a052; --s3: #a78bdc; --s4: #62bf7e; --s5: #e46d7d; --s6: #94a3b0;
+  --good: #62bf7e; --warn: #e5a052; --bad: #e46d7d; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); padding-inline: 16px; padding-block: 0 40px; }
+.wrap { max-width: 1320px; margin: 0 auto; }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding-block: 22px 14px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+h1 { font-family: var(--f-display); font-stretch: 78%; font-weight: 750; font-size: clamp(26px, 4vw, 36px); letter-spacing: -0.01em; margin: 0; line-height: 1.05; }
+h1 span { color: var(--accent); }
+.tag { color: var(--muted); max-width: 62ch; margin: 0; }
+h2 { font-family: var(--f-display); font-stretch: 85%; font-weight: 700; font-size: 18px; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-stretch: 90%; font-weight: 650; font-size: 15px; margin: 0; }
+.label { font-family: var(--f-display); font-stretch: 85%; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.shell { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .shell { grid-template-columns: minmax(0, 1fr); } }
+aside.rack { display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow: auto; padding-right: 2px; }
+@media (max-width: 900px) { aside.rack { position: static; max-height: none; } }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 10px; }
+.sys-list { display: grid; gap: 6px; }
+.sys { display: grid; text-align: left; gap: 1px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer; font: inherit; }
+.sys:hover { border-color: var(--accent); }
+.sys.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+.sys-name { font-weight: 600; }
+.sys-sub { font-size: 12.5px; color: var(--muted); font-family: var(--f-mono); }
+select, input[type=number] { width: 100%; font: 14px var(--f-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 7px 8px; }
+select { font-family: var(--f-body); font-size: 14.5px; }
+select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) 118px; align-items: center; gap: 8px; font-size: 14px; }
+.field em { font-style: normal; color: var(--muted); font-family: var(--f-mono); font-size: 12px; }
+.params { display: grid; gap: 7px; }
+.formula { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); background: var(--bg); border-radius: 5px; padding: 7px 9px; overflow-wrap: anywhere; }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.warnline { font-size: 13px; color: var(--warn); margin: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button.btn { font: 600 14px var(--f-body); border-radius: 6px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--accent); background: transparent; color: var(--accent); }
+button.btn.primary { background: var(--accent); color: var(--accent-ink); }
+button.btn:hover { filter: brightness(1.08); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.grid2 .field { grid-template-columns: minmax(0, 1fr) 80px; }
+main.bench { min-width: 0; display: grid; gap: 14px; }
+.benchhead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: center; }
+.crumb { font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
+.status { font-size: 13px; color: var(--good); font-family: var(--f-mono); }
+.status.bad { color: var(--bad); }
+.tabs { display: flex; flex-wrap: wrap; gap: 2px; border-bottom: 1px solid var(--line); }
+.tab { font: 600 14px var(--f-body); background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 12px; color: var(--muted); cursor: pointer; }
+.tab.on { color: var(--ink); border-bottom-color: var(--accent); }
+.panel { display: grid; gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: grid; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); min-width: 120px; }
+.chip.good { border-left: 3px solid var(--good); }
+.chip.warn { border-left: 3px solid var(--warn); }
+.chip-big { font: 600 16px var(--f-mono); font-variant-numeric: tabular-nums; }
+.chip-small { font-size: 12.5px; color: var(--muted); }
+canvas { width: 100%; height: 330px; display: block; }
+@media (max-width: 600px) { canvas { height: 260px; } }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 14px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: left; white-space: nowrap; }
+th { font-family: var(--f-display); font-stretch: 85%; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
+td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; }
+td.empty { white-space: normal; color: var(--muted); }
+.scroll { max-height: 340px; overflow: auto; }
+.prose { max-width: 72ch; display: grid; gap: 10px; }
+.prose p { margin: 0; }
+.eq { font-family: var(--f-mono); font-size: 13.5px; background: var(--bg); border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: pre; line-height: 1.6; }
+.prose h3 { margin-top: 6px; }
+.prose ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+@media (prefers-reduced-motion: no-preference) { .sys, .tab, button.btn { transition: border-color .15s, background .15s, color .15s; } }
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Two-Nucleon <span>Schrödinger</span> Lab</h1>
+  <p class="tag">Pick a nucleon pair and an interaction, then solve the radial Schrödinger equation for bound states, wavefunctions, phase shifts and scattering lengths. Units: MeV and fm.</p>
+</header>
+
+<div class="shell">
+<aside class="rack" aria-label="Controls">
+  <section class="box">
+    <div class="label">1 · System</div>
+    <div class="sys-list" id="sys-list"></div>
+  </section>
+
+  <section class="box" id="custom-box" hidden>
+    <div class="label">Particles</div>
+    <div class="grid2">
+      <label class="field" for="c-m1"><span>m₁ <em>MeV</em></span><input id="c-m1" type="number" step="any"></label>
+      <label class="field" for="c-m2"><span>m₂ <em>MeV</em></span><input id="c-m2" type="number" step="any"></label>
+      <label class="field" for="c-Z1"><span>Z₁</span><input id="c-Z1" type="number" step="1"></label>
+      <label class="field" for="c-Z2"><span>Z₂</span><input id="c-Z2" type="number" step="1"></label>
+    </div>
+    <p class="note">m₁ is the projectile for T_lab. Coulomb repulsion is added when Z₁Z₂ &gt; 0.</p>
+  </section>
+
+  <section class="box" id="interaction">
+    <div class="label">2 · Interaction</div>
+    <select id="pot" aria-label="Potential"></select>
+    <div class="formula" id="formula"></div>
+    <div class="params" id="params"></div>
+    <label class="field" for="lam"><span>λ strength factor</span><input id="lam" type="number" step="any"></label>
+    <label class="field" id="lwave-row" for="lwave"><span>Partial wave</span><select id="lwave"></select></label>
+    <p class="warnline" id="pauli" hidden>Two identical nucleons in a spin singlet need even ℓ (Pauli). Odd ℓ is shown for study only.</p>
+    <div id="fit-row" class="row">
+      <span class="note">Fit</span>
+      <select id="fit-key" aria-label="Parameter to fit" style="width:auto;flex:1 1 140px"></select>
+      <button class="btn" id="fit-btn" type="button">to <span id="fit-target"></span></button>
+    </div>
+  </section>
+
+  <section class="box" id="numerics">
+    <div class="label">3 · Numerics</div>
+    <div class="grid2">
+      <label class="field" for="n-h"><span>step h <em>fm</em></span><input id="n-h" type="number" step="0.001" min="0.001"></label>
+      <label class="field" for="n-rmax"><span>box r<sub>max</sub> <em>fm</em></span><input id="n-rmax" type="number" step="1" min="5"></label>
+      <label class="field" for="n-rmatch"><span>match r <em>fm</em></span><input id="n-rmatch" type="number" step="1" min="5"></label>
+      <label class="field" for="n-maxStates"><span>max states</span><input id="n-maxStates" type="number" step="1" min="1"></label>
+    </div>
+    <button class="btn primary" id="solve" type="button">Solve</button>
+  </section>
+</aside>
+
+<main class="bench">
+  <div class="benchhead"><span class="crumb" id="crumb"></span><span class="status" id="status" role="status">Loading…</span></div>
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+
+  <section class="panel" id="panel-bound">
+    <div class="chips" id="bound-summary"></div>
+    <p class="note" id="exp-compare"></p>
+    <div class="two">
+      <div class="card"><h2>Levels in the potential</h2><canvas id="cv-levels" aria-label="Effective potential with bound-state energies"></canvas></div>
+      <div class="card"><h2>Radial wavefunctions</h2><canvas id="cv-wf" aria-label="Normalised radial wavefunctions"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Bound states</h2>
+      <div class="tablewrap"><table id="bound-table"><thead><tr><th>n</th><th>nodes</th><th>E (MeV)</th><th>B (MeV)</th><th>√⟨r²⟩ (fm)</th><th>Analytic E</th><th>|Δ|</th></tr></thead><tbody></tbody></table></div>
+      <p class="note" id="ana-note" hidden>Analytic column: exact transcendental (square well) or closed-form (Hulthén, ℓ = 0) energies, as a check on the numerics.</p>
+      <div class="row"><button class="btn" id="thresh" type="button">Find binding threshold λ<sub>c</sub></button><span class="note" id="lam-crit"></span></div>
+    </div>
+    <div class="card" id="deut-box" hidden>
+      <h2>Deuteron observables</h2>
+      <div class="tablewrap"><table id="deut-table"><thead><tr><th>Observable</th><th>This model</th><th>Experiment</th><th>Unit</th></tr></thead><tbody></tbody></table></div>
+      <p class="note" id="deut-note"></p>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-scat" hidden>
+    <div class="card">
+      <div class="row">
+        <label class="field" for="t-min" style="grid-template-columns:auto 90px"><span>T_lab from <em>MeV</em></span><input id="t-min" type="number" step="any"></label>
+        <label class="field" for="t-max" style="grid-template-columns:auto 90px"><span>to</span><input id="t-max" type="number" step="any"></label>
+        <label class="field" for="t-n" style="grid-template-columns:auto 70px"><span>points</span><input id="t-n" type="number" step="1"></label>
+        <label class="field" for="t-L" style="grid-template-columns:auto 60px"><span>ℓ up to</span><input id="t-L" type="number" step="1" min="0" max="6"></label>
+        <button class="btn primary" id="scat-run" type="button">Compute phase shifts</button>
+      </div>
+    </div>
+    <div class="chips" id="scat-summary"></div>
+    <div class="card"><h2>Phase shifts</h2><canvas id="cv-phase" aria-label="Phase shifts versus energy"></canvas><p class="note" id="scat-note"></p></div>
+    <div class="card"><h2>Partial cross section</h2><canvas id="cv-sigma" aria-label="Cross section versus energy"></canvas>
+      <p class="note">σ = (4π/k²) Σ (2ℓ+1) sin²δ<sub>ℓ</sub> for the channels shown, without spin weights or identical-particle symmetrisation.</p></div>
+    <div class="card"><h2>Values</h2><div class="tablewrap scroll"><table id="scat-table"></table></div></div>
+  </section>
+
+  <section class="panel" id="panel-scan" hidden>
+    <div class="card">
+      <div class="row">
+        <label class="field" for="scan-key" style="grid-template-columns:auto minmax(160px,1fr)"><span>Vary</span><select id="scan-key"></select></label>
+        <label class="field" for="scan-from" style="grid-template-columns:auto 90px"><span>from</span><input id="scan-from" type="number" step="any"></label>
+        <label class="field" for="scan-to" style="grid-template-columns:auto 90px"><span>to</span><input id="scan-to" type="number" step="any"></label>
+        <label class="field" for="scan-steps" style="grid-template-columns:auto 70px"><span>steps</span><input id="scan-steps" type="number" step="1"></label>
+        <button class="btn primary" id="scan-run" type="button">Run scan</button>
+      </div>
+      <p class="note">Watch levels dive out of the continuum as the well deepens. Other parameters stay at their values in the control rack.</p>
+    </div>
+    <div class="two">
+      <div class="card"><h2>Bound-state energies</h2><canvas id="cv-scan" aria-label="Bound-state energies versus parameter"></canvas></div>
+      <div class="card" id="scan-a-wrap"><h2>Scattering length</h2><canvas id="cv-scan-a" aria-label="Scattering length versus parameter"></canvas></div>
+    </div>
+    <p class="note" id="scan-note"></p>
+  </section>
+
+  <section class="panel" id="panel-h2" hidden>
+    <div class="card">
+      <h2>Slow neutrons on ortho- and para-hydrogen</h2>
+      <p class="note">In H₂ the two proton spins couple to S = 0 (para) or S = 1 (ortho). A neutron with wavelength much longer than the 0.74 Å bond scatters coherently from both protons, so the cross sections depend on the triplet and singlet np scattering lengths separately, including their signs.</p>
+      <div class="grid2" style="max-width:640px">
+        <label class="field" for="h2-at"><span>a_t triplet <em>fm</em></span><input id="h2-at" type="number" step="any"></label>
+        <label class="field" for="h2-as"><span>a_s singlet <em>fm</em></span><input id="h2-as" type="number" step="any"></label>
+      </div>
+      <label class="field" for="h2-mf" style="max-width:640px;grid-template-columns:minmax(0,1fr) 260px"><span>Proton binding (reduced-mass factor)</span>
+        <select id="h2-mf"><option value="1">free proton (1)</option><option value="1.3333333333333333">in rigid H₂ molecule (4/3)</option><option value="2">infinitely heavy binding (2)</option></select></label>
+      <div class="row"><button class="btn" id="h2-exp" type="button">Use measured a_t, a_s</button><button class="btn" id="h2-model" type="button">Use the lab's models</button><span class="note" id="h2-src"></span></div>
+    </div>
+    <div class="chips" id="h2-out"></div>
+    <div class="two">
+      <div class="card"><h2>Cross sections</h2><canvas id="cv-h2" aria-label="Ortho and para hydrogen cross sections"></canvas></div>
+      <div class="card prose">
+        <h3>Schwinger–Teller at E → 0</h3>
+        <div class="eq">a_op = (3a_t + a_s)/4 + (a_t − a_s)/4 · σ_n·σ_p
+A_H₂ = κ [ 2a_c + (a_t − a_s)/2 · σ_n·S ]
+σ_para  = 4π κ² (2a_c)²
+σ_ortho = 4π κ² [ (2a_c)² + (a_t − a_s)²/2 ]</div>
+        <p>Here a_c = (3a_t + a_s)/4 and κ is the reduced-mass factor. For para-H₂ the spin term vanishes and only the small coherent length a_c survives, because 3a_t ≈ −a_s. Ortho-H₂ keeps the large spin-dependent part, which also drives ortho→para conversion.</p>
+        <p id="h2-flip"></p>
+        <p class="note">Valid for neutron energies well below the 14.7 meV para→ortho rotational threshold. Thermal-energy work needs molecular form factors and rotational transitions.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-theory" hidden>
+    <div class="card prose">
+      <h2>What the lab solves</h2>
+      <p>The two-body problem reduces to one particle of reduced mass μ = m₁m₂/(m₁+m₂). With ψ = u_ℓ(r)/r · Y_ℓm the radial equation is</p>
+      <div class="eq">−(ħ²/2μ) u″(r) + [ V(r) + ħ²ℓ(ℓ+1)/(2μr²) + Z₁Z₂e²/r ] u(r) = E u(r),   u(0) = 0</div>
+      <p>For the deuteron the tensor force S₁₂ couples ³S₁ (u) and ³D₁ (w):</p>
+      <div class="eq">−(ħ²/2μ) u″ + V_C u + √8 V_T w = E u
+−(ħ²/2μ) w″ + [V_C − 2V_T − 3V_LS + 6ħ²/(2μr²)] w + √8 V_T u = E w</div>
+      <h3>Bound states</h3>
+      <p>The radial operator is discretised on r_i = i·h with three-point differences inside a box of radius r_max, giving a symmetric tridiagonal matrix (block tridiagonal with 2×2 blocks for ³S₁–³D₁). A Sturm-sequence count, generalised to blocks through the LDLᵀ inertia, gives the number of eigenvalues below any trial energy, so bisection finds every bound state without missing one. Energies at h and 2h are combined by Richardson extrapolation, E ≈ (4E_h − E_2h)/3, and eigenvectors come from inverse iteration.</p>
+      <h3>Scattering</h3>
+      <p>Numerov integration outward from the origin, matched beyond the nuclear range to Riccati–Bessel functions (neutral) or Coulomb functions F_ℓ, G_ℓ (charged), at two radii:</p>
+      <div class="eq">u(r) → F_ℓ(kr) cos δ_ℓ + G_ℓ(kr) sin δ_ℓ</div>
+      <p>For pp the Coulomb functions come from their asymptotic expansion at large kr; the nuclear phase is the full phase minus the pure-Coulomb phase computed on the same grid. In ³S₁–³D₁ the code builds the 2×2 K-matrix, diagonalises it into Blatt–Biedenharn eigenphases, and converts them to the Stapp (bar) phases δ̄₁, δ̄₂, ε̄₁ that partial-wave analyses quote.</p>
+      <h3>Low energy</h3>
+      <div class="eq">k cot δ₀ = −1/a + ½ r₀ k² + …                               (neutral)
+C²(η) k cot δ₀ + (2/a_B) h(η) = −1/a_pp + ½ r₀ k² + …        (pp)</div>
+      <p>For neutral S-waves a and r₀ come exactly from the zero-energy solution; otherwise they are fitted from low-energy phase shifts. The ERE pole k = iκ with κ = [1 − √(1 − 2r₀/a)]/r₀ is a bound state for κ &gt; 0 and a virtual state for κ &lt; 0, as in the np singlet and nn systems.</p>
+      <h3>Exercises for students</h3>
+      <ul>
+        <li>Fit a square well to the deuteron at R = 1.5, 2.0 and 2.5 fm. How do r_d and the effective range change? Compare with the measured r₀ = 1.75 fm.</li>
+        <li>With Reid ³S₁, set the tensor strength to 0. Is the deuteron still bound? Use the parameter scan on the tensor factor to find where binding starts.</li>
+        <li>Find λ_c for the pp and nn systems. How much stronger would the nuclear force need to be for a bound diproton or dineutron?</li>
+        <li>Check Levinson's theorem: start δ₀ for the deuteron channel and count the bound states.</li>
+        <li>Flip the sign of a_s in the H₂ tab. Why does the para cross section rise so sharply?</li>
+      </ul>
+      <h3>Models and data</h3>
+      <p>Reid soft core: R. V. Reid, Ann. Phys. 50, 411 (1968). Malfliet–Tjon: Nucl. Phys. A127, 161 (1969). Reference phase shifts: Nijmegen PWA93 (Stoks et al., Phys. Rev. C 48, 792 (1993)), shown as open circles. Schwinger &amp; Teller, Phys. Rev. 52, 286 (1937). Kinematics are non-relativistic: E_cm = T_lab·m₂/(m₁+m₂), so phases above about 150 MeV carry a few-percent kinematic error.</p>
+    </div>
+  </section>
+</main>
+</div>
+</div>
+
+<script>/* ===================================================================
+   NN-Lab solver engine
+   Radial Schrödinger equation for two-nucleon systems:
+   - bound states: finite differences + Sturm-sequence bisection
+     (works for single channels and the coupled 3S1-3D1 channel),
+     Richardson extrapolation in the grid step
+   - scattering: Numerov integration, matching to Riccati-Bessel /
+     Coulomb functions; coupled-channel K-matrix, Blatt-Biedenharn
+     eigenphases and Stapp (bar) phases
+   - scattering length / effective range (incl. Coulomb-modified ERE)
+   - deuteron observables, Schwinger-Teller n + ortho/para H2
+   Units: MeV, fm.
+   =================================================================== */
+(function (global) {
+  'use strict';
+
+  const PHYS = {
+    hbarc: 197.3269804,      // MeV fm
+    mp: 938.2720882,         // MeV
+    mn: 939.5654205,         // MeV
+    e2: 1.43996448,          // e^2/(4 pi eps0)  MeV fm
+    mup: 2.79284734,         // proton magnetic moment (nuclear magnetons)
+    mun: -1.91304273,        // neutron magnetic moment
+    gammaE: 0.5772156649015329
+  };
+
+  /* -------------------- potential library -------------------- */
+  // Each central potential: f(r, p) in MeV. Depth parameters are positive numbers for attraction.
+  const POTENTIALS = {
+    square: {
+      name: 'Square well', formula: 'V(r) = −V₀  (r < R),  0  (r ≥ R)',
+      params: [{ k: 'V0', label: 'V₀ depth', unit: 'MeV' }, { k: 'R', label: 'R range', unit: 'fm' }],
+      V: (r, p) => (r < p.R ? -p.V0 : 0), range: p => p.R, disc: true
+    },
+    exponential: {
+      name: 'Exponential', formula: 'V(r) = −V₀ e^{−r/a}',
+      params: [{ k: 'V0', label: 'V₀ depth', unit: 'MeV' }, { k: 'a', label: 'a range', unit: 'fm' }],
+      V: (r, p) => -p.V0 * Math.exp(-r / p.a), range: p => 25 * p.a
+    },
+    yukawa: {
+      name: 'Yukawa', formula: 'V(r) = −V₀ e^{−r/a} / (r/a)',
+      params: [{ k: 'V0', label: 'V₀ strength', unit: 'MeV' }, { k: 'a', label: 'a range', unit: 'fm' }],
+      V: (r, p) => -p.V0 * Math.exp(-r / p.a) / (r / p.a), range: p => 22 * p.a
+    },
+    hulthen: {
+      name: 'Hulthén', formula: 'V(r) = −V₀ / (e^{r/a} − 1)',
+      params: [{ k: 'V0', label: 'V₀ strength', unit: 'MeV' }, { k: 'a', label: 'a range', unit: 'fm' }],
+      V: (r, p) => -p.V0 / Math.expm1(r / p.a), range: p => 25 * p.a
+    },
+    gaussian: {
+      name: 'Gaussian', formula: 'V(r) = −V₀ e^{−(r/a)²}',
+      params: [{ k: 'V0', label: 'V₀ depth', unit: 'MeV' }, { k: 'a', label: 'a range', unit: 'fm' }],
+      V: (r, p) => -p.V0 * Math.exp(-(r / p.a) * (r / p.a)), range: p => 6 * p.a
+    },
+    woodssaxon: {
+      name: 'Woods–Saxon', formula: 'V(r) = −V₀ / (1 + e^{(r−R)/d})',
+      params: [{ k: 'V0', label: 'V₀ depth', unit: 'MeV' }, { k: 'R', label: 'R radius', unit: 'fm' }, { k: 'd', label: 'd diffuseness', unit: 'fm' }],
+      V: (r, p) => -p.V0 / (1 + Math.exp((r - p.R) / p.d)), range: p => p.R + 25 * p.d
+    },
+    malfliettjon: {
+      name: 'Malfliet–Tjon (Yukawa repulsion + attraction)',
+      formula: 'V(r) = [V_R e^{−μ_R r} − V_A e^{−μ_A r}] / r',
+      params: [{ k: 'VR', label: 'V_R', unit: 'MeV fm' }, { k: 'muR', label: 'μ_R', unit: 'fm⁻¹' },
+               { k: 'VA', label: 'V_A', unit: 'MeV fm' }, { k: 'muA', label: 'μ_A', unit: 'fm⁻¹' }],
+      V: (r, p) => (p.VR * Math.exp(-p.muR * r) - p.VA * Math.exp(-p.muA * r)) / r,
+      range: p => 22 / Math.min(p.muA, p.muR)
+    },
+    reid1s0: {
+      name: 'Reid 1968 soft core (¹S₀)',
+      formula: 'V = −10.463 e^{−x}/x − 1650.6 e^{−4x}/x + 6484.2 e^{−7x}/x,  x = 0.7 r',
+      params: [], fixed: true,
+      V: (r) => { const x = 0.7 * r; return (-10.463 * Math.exp(-x) - 1650.6 * Math.exp(-4 * x) + 6484.2 * Math.exp(-7 * x)) / x; },
+      range: () => 30
+    }
+  };
+
+  // Coupled 3S1-3D1 potentials: return {vc, vt, vls}
+  const COUPLED = {
+    reid3s1: {
+      name: 'Reid 1968 soft core (³S₁–³D₁, with tensor)',
+      formula: 'central + tensor S₁₂ + spin-orbit L·S (Reid, Ann. Phys. 50, 411 (1968))',
+      params: [{ k: 'lamT', label: 'tensor strength ×', unit: '' }],
+      W: (r, p) => {
+        const x = 0.7 * r, e1 = Math.exp(-x), e2 = Math.exp(-2 * x), e4 = Math.exp(-4 * x), e6 = Math.exp(-6 * x);
+        const vc = (-10.463 * e1 + 105.468 * e2 - 3187.8 * e4 + 9924.3 * e6) / x;
+        const vt = (-10.463 * ((1 + 3 / x + 3 / (x * x)) * e1 - (12 / x + 3 / (x * x)) * e4) + 351.77 * e4 - 1673.5 * e6) / x;
+        const vls = (708.91 * e4 - 2713.1 * e6) / x;
+        return { vc, vt: vt * p.lamT, vls };
+      },
+      range: () => 30
+    },
+    gaussopep: {
+      name: 'Gaussian central + regularised OPEP tensor',
+      formula: 'V_C = −V₀ e^{−(r/a)²};  V_T = −V_π (1+3/x+3/x²) e^{−x}/x · (1−e^{−(r/c)²})²,  x = m_π r',
+      params: [{ k: 'V0', label: 'V₀ central depth', unit: 'MeV' }, { k: 'a', label: 'a central range', unit: 'fm' },
+               { k: 'Vpi', label: 'V_π tensor strength', unit: 'MeV' }, { k: 'c', label: 'c cutoff radius', unit: 'fm' }],
+      W: (r, p) => {
+        const x = 0.7 * r;
+        const vc = -p.V0 * Math.exp(-(r / p.a) * (r / p.a));
+        const cut = 1 - Math.exp(-(r / p.c) * (r / p.c));
+        const vt = -p.Vpi * (1 + 3 / x + 3 / (x * x)) * Math.exp(-x) / x * cut * cut;
+        return { vc, vt, vls: 0 };
+      },
+      range: () => 30
+    }
+  };
+
+  /* -------------------- channel construction -------------------- */
+  // ch = { type:'single'|'coupled', mu, l, Vc(r) [nuclear], Z (Z1*Z2), W(r) for coupled, rnuc }
+  function fOf(mu) { return 2 * mu / (PHYS.hbarc * PHYS.hbarc); } // fm^-2 MeV^-1
+
+  function veffSingle(ch, r) {
+    const f = fOf(ch.mu);
+    let v = ch.lam * ch.Vc(r);
+    if (ch.Z) v += ch.Z * PHYS.e2 / r;
+    if (ch.l) v += ch.l * (ch.l + 1) / (f * r * r);
+    return v;
+  }
+  // coupled: returns [a11, a12, a22]
+  function veffCoupled(ch, r) {
+    const f = fOf(ch.mu);
+    const w = ch.W(r);
+    const vc = ch.lam * w.vc, vt = ch.lam * w.vt, vls = ch.lam * w.vls;
+    return [vc, Math.SQRT2 * 2 * vt, vc - 2 * vt - 3 * vls + 6 / (f * r * r)];
+  }
+
+  /* -------------------- bound states (FD + Sturm) -------------------- */
+  function buildFD(ch, h, rmax) {
+    const N = Math.floor(rmax / h) - 1;
+    const f = fOf(ch.mu), c = 1 / (f * h * h);
+    if (ch.type === 'single') {
+      const d = new Float64Array(N);
+      let vmin = Infinity;
+      for (let i = 0; i < N; i++) {
+        const r = (i + 1) * h;
+        let v = veffSingle(ch, r);
+        if (ch.disc) { // cell-average a discontinuous potential (square well) -> O(h^2) convergence
+          let acc = 0; const M = 16;
+          for (let j = 0; j < M; j++) acc += ch.Vc(r + h * ((j + 0.5) / M - 0.5));
+          v += ch.lam * (acc / M - ch.Vc(r));
+        }
+        d[i] = 2 * c + v; if (v < vmin) vmin = v;
+      }
+      return { s: 1, N, c, h, d, vmin };
+    } else {
+      const d = new Float64Array(3 * N);
+      let vmin = Infinity;
+      for (let i = 0; i < N; i++) {
+        const m = veffCoupled(ch, (i + 1) * h);
+        d[3 * i] = 2 * c + m[0]; d[3 * i + 1] = m[1]; d[3 * i + 2] = 2 * c + m[2];
+        const t = 0.5 * (m[0] + m[2]), q = Math.sqrt(0.25 * (m[0] - m[2]) ** 2 + m[1] * m[1]);
+        if (t - q < vmin) vmin = t - q;
+      }
+      return { s: 2, N, c, h, d, vmin };
+    }
+  }
+
+  // number of eigenvalues below sigma
+  function sturm(fd, sigma) {
+    const { N, c, d } = fd, c2 = c * c;
+    let cnt = 0;
+    if (fd.s === 1) {
+      let D = d[0] - sigma;
+      if (D === 0) D = -1e-300;
+      if (D < 0) cnt++;
+      for (let i = 1; i < N; i++) {
+        D = d[i] - sigma - c2 / D;
+        if (D === 0) D = -1e-300;
+        if (D < 0) cnt++;
+      }
+    } else {
+      let a = d[0] - sigma, b = d[1], e = d[2] - sigma;
+      for (let i = 0; i < N; i++) {
+        if (i > 0) {
+          // D_i = A_i - sigma - c^2 D_{i-1}^{-1}
+          let det = a * e - b * b;
+          if (det === 0) det = 1e-300;
+          const ia = e / det, ib = -b / det, ie = a / det;
+          a = d[3 * i] - sigma - c2 * ia; b = d[3 * i + 1] - c2 * ib; e = d[3 * i + 2] - sigma - c2 * ie;
+        }
+        const det = a * e - b * b, tr = a + e;
+        if (det < 0) cnt += 1; else if (tr < 0) cnt += 2;
+      }
+    }
+    return cnt;
+  }
+
+  function eigenvaluesBelow(fd, Emax, maxStates) {
+    const n = Math.min(sturm(fd, Emax), maxStates);
+    const out = [];
+    const lo0 = fd.vmin - 1;
+    for (let k = 0; k < n; k++) {
+      let lo = lo0, hi = Emax;
+      for (let it = 0; it < 200; it++) {
+        const mid = 0.5 * (lo + hi);
+        if (sturm(fd, mid) > k) hi = mid; else lo = mid;
+        if (hi - lo < 1e-13 * Math.max(1, Math.abs(mid))) break;
+      }
+      out.push(0.5 * (lo + hi));
+    }
+    return out;
+  }
+
+  // inverse iteration via block Thomas algorithm
+  function eigenvector(fd, E) {
+    const { N, c, d, s } = fd;
+    const sigma = E + 1e-9 * Math.max(1, Math.abs(E));
+    let x = new Float64Array(s * N);
+    for (let i = 0; i < s * N; i++) x[i] = 1 + 0.01 * Math.sin(i);
+    for (let iter = 0; iter < 3; iter++) {
+      const b = x;
+      if (s === 1) {
+        const inv = new Float64Array(N), y = new Float64Array(N);
+        let M = d[0] - sigma; inv[0] = 1 / M; y[0] = b[0];
+        for (let i = 1; i < N; i++) { M = d[i] - sigma - c * c * inv[i - 1]; inv[i] = 1 / M; y[i] = b[i] + c * inv[i - 1] * y[i - 1]; }
+        const z = new Float64Array(N);
+        z[N - 1] = inv[N - 1] * y[N - 1];
+        for (let i = N - 2; i >= 0; i--) z[i] = inv[i] * (y[i] + c * z[i + 1]);
+        x = z;
+      } else {
+        const inv = new Float64Array(3 * N), y = new Float64Array(2 * N);
+        let a = d[0] - sigma, bb = d[1], e = d[2] - sigma;
+        for (let i = 0; i < N; i++) {
+          if (i > 0) {
+            const ia = inv[3 * (i - 1)], ib = inv[3 * (i - 1) + 1], ie = inv[3 * (i - 1) + 2];
+            a = d[3 * i] - sigma - c * c * ia; bb = d[3 * i + 1] - c * c * ib; e = d[3 * i + 2] - sigma - c * c * ie;
+          }
+          const det = a * e - bb * bb;
+          inv[3 * i] = e / det; inv[3 * i + 1] = -bb / det; inv[3 * i + 2] = a / det;
+          if (i === 0) { y[0] = b[0]; y[1] = b[1]; }
+          else {
+            const ia = inv[3 * (i - 1)], ib = inv[3 * (i - 1) + 1], ie = inv[3 * (i - 1) + 2];
+            const y0 = y[2 * (i - 1)], y1 = y[2 * (i - 1) + 1];
+            y[2 * i] = b[2 * i] + c * (ia * y0 + ib * y1);
+            y[2 * i + 1] = b[2 * i + 1] + c * (ib * y0 + ie * y1);
+          }
+        }
+        const z = new Float64Array(2 * N);
+        for (let i = N - 1; i >= 0; i--) {
+          let r0 = y[2 * i], r1 = y[2 * i + 1];
+          if (i < N - 1) { r0 += c * z[2 * (i + 1)]; r1 += c * z[2 * (i + 1) + 1]; }
+          const ia = inv[3 * i], ib = inv[3 * i + 1], ie = inv[3 * i + 2];
+          z[2 * i] = ia * r0 + ib * r1; z[2 * i + 1] = ib * r0 + ie * r1;
+        }
+        x = z;
+      }
+      let nrm = 0; for (let i = 0; i < x.length; i++) nrm += x[i] * x[i];
+      nrm = Math.sqrt(nrm); for (let i = 0; i < x.length; i++) x[i] /= nrm;
+    }
+    // split into channels, normalise ∫(u²+w²)dr = 1
+    const h = fd.h;
+    const r = new Float64Array(N + 2), u = new Float64Array(N + 2), w = s === 2 ? new Float64Array(N + 2) : null;
+    for (let i = 0; i < N + 2; i++) r[i] = i * h;
+    for (let i = 0; i < N; i++) { u[i + 1] = x[s * i]; if (w) w[i + 1] = x[2 * i + 1]; }
+    let norm = 0; for (let i = 0; i < N + 2; i++) norm += u[i] * u[i] + (w ? w[i] * w[i] : 0);
+    norm = Math.sqrt(norm * h);
+    // sign convention: u positive at its largest |u|
+    let imax = 0; for (let i = 0; i < N + 2; i++) if (Math.abs(u[i]) > Math.abs(u[imax])) imax = i;
+    const sg = u[imax] < 0 ? -1 : 1;
+    for (let i = 0; i < N + 2; i++) { u[i] *= sg / norm; if (w) w[i] *= sg / norm; }
+    return { r, u, w };
+  }
+
+  function boundStates(ch, opt) {
+    const h = opt.h || 0.01, rmax = opt.rmax || 40, maxStates = opt.maxStates || 12;
+    const fd1 = buildFD(ch, h, rmax);
+    const E1 = eigenvaluesBelow(fd1, 0, maxStates);
+    let E = E1.slice();
+    if (opt.richardson !== false && E1.length) {
+      const fd2 = buildFD(ch, 2 * h, rmax);
+      const E2 = eigenvaluesBelow(fd2, 0, maxStates);
+      E = E1.map((e, i) => (i < E2.length ? (4 * e - E2[i]) / 3 : e));
+      E = E.map((e, i) => (e < 0 ? e : E1[i]));
+    }
+    const states = E.map((e, i) => {
+      const wf = opt.wavefunctions === false ? null : eigenvector(fd1, E1[i]);
+      let nodes = null;
+      if (wf) { nodes = 0; let prev = 0; const tol = 1e-6;
+        for (let j = 1; j < wf.u.length - 1; j++) { const v = wf.u[j]; if (Math.abs(v) > tol) { if (prev && Math.sign(v) !== Math.sign(prev)) nodes++; prev = v; } } }
+      return { E: e, Eraw: E1[i], wf, nodes };
+    });
+    return { states, h, rmax };
+  }
+
+  /* -------------------- deuteron observables -------------------- */
+  function deuteronObservables(ch, st) {
+    const { r, u, w } = st.wf, h = r[1] - r[0];
+    const f = fOf(ch.mu);
+    let r2 = 0, pd = 0, q = 0;
+    for (let i = 0; i < r.length; i++) {
+      const ww = w ? w[i] : 0, uu = u[i];
+      r2 += r[i] * r[i] * (uu * uu + ww * ww);
+      pd += ww * ww;
+      q += r[i] * r[i] * (Math.sqrt(8) * uu * ww - ww * ww);
+    }
+    r2 *= h; pd *= h; q *= h / 20;
+    const kappa = Math.sqrt(-f * st.E);
+    // asymptotic normalisation & D/S ratio at r ~ 8/kappa-ish but inside box
+    const rA = Math.min(Math.max(12, 2.5 / kappa), 0.5 * r[r.length - 1]);
+    const iA = Math.round(rA / h);
+    const AS = u[iA] / Math.exp(-kappa * r[iA]);
+    let eta = null;
+    if (w) { const x = kappa * r[iA]; eta = (w[iA] / (Math.exp(-x) * (1 + 3 / x + 3 / (x * x)))) / AS; }
+    const mud = PHYS.mup + PHYS.mun - 1.5 * (PHYS.mup + PHYS.mun - 0.5) * pd;
+    return { B: -st.E, rd: 0.5 * Math.sqrt(r2), rms: Math.sqrt(r2), PD: pd, Q: q, AS, eta, mud, kappa, size: 1 / kappa };
+  }
+
+  /* -------------------- asymptotic Riccati-Bessel / Coulomb functions -------------------- */
+  // Returns F', G' : regular/irregular functions WITHOUT the Coulomb phase sigma_l in theta.
+  function asymFG(l, eta, rho) {
+    let fk = 1, gk = 0, fs = 1, gs = 0, prevMag = Infinity, ok = true;
+    for (let k = 0; k < 400; k++) {
+      const ak = (2 * k + 1) * eta / ((2 * k + 2) * rho);
+      const bk = (l * (l + 1) - k * (k + 1) + eta * eta) / ((2 * k + 2) * rho);
+      const fn = ak * fk - bk * gk, gn = ak * gk + bk * fk;
+      const mag = Math.abs(fn) + Math.abs(gn);
+      if (mag === 0) break;
+      if (mag > prevMag && k > l + 2) { ok = mag < 1e-8; break; }
+      fs += fn; gs += gn; fk = fn; gk = gn; prevMag = mag;
+      if (mag < 1e-16 * (Math.abs(fs) + Math.abs(gs))) break;
+    }
+    const th = rho - (eta ? eta * Math.log(2 * rho) : 0) - l * Math.PI / 2;
+    const c = Math.cos(th), s = Math.sin(th);
+    return { F: gs * c + fs * s, G: fs * c - gs * s, ok };
+  }
+
+  /* -------------------- Numerov (single channel) -------------------- */
+  function numerovSingle(Qfun, h, n) {
+    // u'' = Q u, u(0)=0
+    const u = new Float64Array(n + 1);
+    u[0] = 0; u[1] = 1e-10;
+    let Wm = 0, W0 = 1 - h * h * Qfun(h) / 12, scale = 1;
+    for (let i = 1; i < n; i++) {
+      const Wp = 1 - h * h * Qfun((i + 1) * h) / 12;
+      const prev = i - 1 === 0 ? 0 : Wm * u[i - 1];
+      u[i + 1] = ((12 - 10 * W0) * u[i] - prev) / Wp;
+      Wm = W0; W0 = Wp;
+      if (Math.abs(u[i + 1]) > 1e100) { for (let j = 0; j <= i + 1; j++) u[j] *= 1e-100; scale *= 1e-100; }
+    }
+    return u;
+  }
+
+  function wrapPi(d) { // map to (-pi/2, pi/2]
+    d = d % Math.PI; if (d > Math.PI / 2) d -= Math.PI; if (d <= -Math.PI / 2) d += Math.PI; return d;
+  }
+
+  function phaseFromU(u, h, i1, i2, l, eta, k) {
+    const a = asymFG(l, eta, k * i1 * h), b = asymFG(l, eta, k * i2 * h);
+    const u1 = u[i1], u2 = u[i2];
+    const num = u2 * a.F - u1 * b.F, den = u1 * b.G - u2 * a.G;
+    return Math.atan(num / den);
+  }
+
+  // single-channel phase shift (radians, modulo pi) at CM energy Ecm
+  function phaseSingle(ch, Ecm, opt) {
+    opt = opt || {};
+    const f = fOf(ch.mu), k = Math.sqrt(f * Ecm);
+    const eta = ch.Z ? ch.Z * PHYS.e2 * f / (2 * k) : 0;
+    const R1 = opt.rmatch || ch.rnuc || 25;
+    const h = Math.min(opt.h || 0.01, 0.05 / k);
+    const dr = Math.min(Math.max(0.5 / k, 1), 400);
+    let r1 = R1;
+    if (eta > 0) r1 = Math.max(R1, Math.max(40, 12 * eta, 4 * (ch.l + 2)) / k);
+    const r2 = r1 + dr;
+    const i1 = Math.round(r1 / h), i2 = Math.round(r2 / h);
+    const Q = (r) => f * (veffSingle(ch, r) - Ecm);
+    const u = numerovSingle(Q, h, i2);
+    let d = phaseFromU(u, h, i1, i2, ch.l, eta, k);
+    if (eta > 0) {
+      const chC = { type: 'single', mu: ch.mu, l: ch.l, lam: 0, Vc: () => 0, Z: ch.Z };
+      const uc = numerovSingle((r) => f * (veffSingle(chC, r) - Ecm), h, i2);
+      d -= phaseFromU(uc, h, i1, i2, ch.l, eta, k);
+    }
+    return { delta: wrapPi(d), k, eta, u, h };
+  }
+
+  /* -------------------- coupled-channel Numerov (3S1-3D1, neutral) -------------------- */
+  function phaseCoupled(ch, Ecm, opt) {
+    opt = opt || {};
+    const f = fOf(ch.mu), k = Math.sqrt(f * Ecm);
+    const R1 = opt.rmatch || ch.rnuc || 25;
+    const h = Math.min(opt.h || 0.01, 0.05 / k);
+    const dr = Math.min(Math.max(0.5 / k, 1), 400);
+    const i1 = Math.round(R1 / h), i2 = Math.round((R1 + dr) / h);
+    const h12 = h * h / 12;
+    const Wmat = (r) => { const m = veffCoupled(ch, r); return [1 - h12 * f * (m[0] - Ecm), -h12 * f * m[1], 1 - h12 * f * (m[2] - Ecm)]; };
+    // U columns: two independent solutions; store as [u00,u01,u10,u11] (row=channel, col=solution)
+    let Um = [0, 0, 0, 0], U0 = [h, 0, 0, h * h * h];
+    let Wm = null, W0 = Wmat(h);
+    let save1 = null, save2 = null;
+    for (let i = 1; i < i2; i++) {
+      const Wp = Wmat((i + 1) * h);
+      // rhs = (12 I - 10 W0) U0 - Wm Um
+      const A = [12 - 10 * W0[0], -10 * W0[1], -10 * W0[1], 12 - 10 * W0[2]];
+      const rhs = [
+        A[0] * U0[0] + A[1] * U0[2], A[0] * U0[1] + A[1] * U0[3],
+        A[2] * U0[0] + A[3] * U0[2], A[2] * U0[1] + A[3] * U0[3]];
+      if (i > 1) {
+        rhs[0] -= Wm[0] * Um[0] + Wm[1] * Um[2]; rhs[1] -= Wm[0] * Um[1] + Wm[1] * Um[3];
+        rhs[2] -= Wm[1] * Um[0] + Wm[2] * Um[2]; rhs[3] -= Wm[1] * Um[1] + Wm[2] * Um[3];
+      }
+      const det = Wp[0] * Wp[2] - Wp[1] * Wp[1];
+      const i0 = Wp[2] / det, i1_ = -Wp[1] / det, i3 = Wp[0] / det;
+      const Up = [i0 * rhs[0] + i1_ * rhs[2], i0 * rhs[1] + i1_ * rhs[3], i1_ * rhs[0] + i3 * rhs[2], i1_ * rhs[1] + i3 * rhs[3]];
+      Um = U0; U0 = Up; Wm = W0; W0 = Wp;
+      // stabilise: right-multiply all stored solutions by U0^{-1} so the two columns stay independent
+      if (i % 25 === 0 && i + 1 < i2) {
+        const dU = U0[0] * U0[3] - U0[1] * U0[2];
+        if (dU !== 0 && isFinite(dU)) {
+          const M = [U0[3] / dU, -U0[1] / dU, -U0[2] / dU, U0[0] / dU];
+          const mul = (X) => [X[0] * M[0] + X[1] * M[2], X[0] * M[1] + X[1] * M[3], X[2] * M[0] + X[3] * M[2], X[2] * M[1] + X[3] * M[3]];
+          Um = mul(Um); U0 = [1, 0, 0, 1]; if (save1) save1 = mul(save1);
+        }
+      }
+      if (i + 1 === i1) save1 = U0.slice();
+      if (i + 1 === i2) save2 = U0.slice();
+    }
+    // per channel c (l=0,2), per solution j: U = F A + G B at two radii
+    const Am = [0, 0, 0, 0], Bm = [0, 0, 0, 0];
+    [0, 2].forEach((l, c) => {
+      const a = asymFG(l, 0, k * i1 * h), b = asymFG(l, 0, k * i2 * h);
+      const det = a.F * b.G - a.G * b.F;
+      for (let j = 0; j < 2; j++) {
+        const u1 = save1[2 * c + j], u2 = save2[2 * c + j];
+        Am[2 * c + j] = (u1 * b.G - u2 * a.G) / det;
+        Bm[2 * c + j] = (a.F * u2 - b.F * u1) / det;
+      }
+    });
+    const dA = Am[0] * Am[3] - Am[1] * Am[2];
+    const Ai = [Am[3] / dA, -Am[1] / dA, -Am[2] / dA, Am[0] / dA];
+    const K = [Bm[0] * Ai[0] + Bm[1] * Ai[2], Bm[0] * Ai[1] + Bm[1] * Ai[3], Bm[2] * Ai[0] + Bm[3] * Ai[2], Bm[2] * Ai[1] + Bm[3] * Ai[3]];
+    const asym = Math.abs(K[1] - K[2]) / (Math.abs(K[1]) + Math.abs(K[2]) + 1e-30);
+    const K00 = K[0], K11 = K[3], K01 = 0.5 * (K[1] + K[2]);
+    const eps = 0.5 * Math.atan(2 * K01 / (K00 - K11));
+    const ce = Math.cos(eps), se = Math.sin(eps);
+    const la = K00 * ce * ce + 2 * K01 * se * ce + K11 * se * se;
+    const lb = K00 * se * se - 2 * K01 * se * ce + K11 * ce * ce;
+    const da = Math.atan(la), db = Math.atan(lb);
+    // Stapp (bar) phases
+    const s2eb = Math.sin(2 * eps) * Math.sin(da - db);
+    const epsBar = 0.5 * Math.asin(Math.max(-1, Math.min(1, s2eb)));
+    const t = Math.abs(Math.tan(2 * eps)) < 1e-14 ? 0 : Math.tan(2 * epsBar) / Math.tan(2 * eps);
+    const diff = Math.asin(Math.max(-1, Math.min(1, t)));
+    // choose branch of diff consistent with da-db
+    const sum = da + db;
+    let dd = diff;
+    const dab = wrapPi(da - db);
+    if (Math.abs(Math.cos(dab)) > 0 && Math.cos(dab) < 0) dd = Math.PI - diff;
+    return { k, deltaA: wrapPi(da), deltaB: wrapPi(db), eps, delta1Bar: wrapPi(0.5 * (sum + dd)), delta2Bar: wrapPi(0.5 * (sum - dd)), epsBar, Kasym: asym };
+  }
+
+  // Blatt–Biedenharn (eigenphases, mixing) -> Stapp "bar" phases. Inputs must be unwrapped (continuous) eigenphases.
+  function bbToBar(da, db, eps) {
+    const s2eb = Math.sin(2 * eps) * Math.sin(da - db);
+    const epsBar = 0.5 * Math.asin(Math.max(-1, Math.min(1, s2eb)));
+    const t2 = Math.tan(2 * eps);
+    let dd = Math.abs(t2) < 1e-14 ? (da - db) : Math.asin(Math.max(-1, Math.min(1, Math.tan(2 * epsBar) / t2)));
+    if (Math.cos(da - db) < 0) dd = Math.PI - dd;
+    if (Math.abs(t2) < 1e-14) dd = da - db;
+    return { d1: 0.5 * (da + db + dd), d2: 0.5 * (da + db - dd), epsBar };
+  }
+
+  /* -------------------- unwrap with Levinson start -------------------- */
+  function unwrap(arr, start) {
+    const out = []; let prev = start;
+    for (let i = 0; i < arr.length; i++) {
+      let d = arr[i];
+      if (i === 0) { const m = Math.round((prev - d) / Math.PI); d += m * Math.PI; }
+      else { const m = Math.round((prev - d) / Math.PI); d += m * Math.PI; }
+      out.push(d); prev = d;
+    }
+    return out;
+  }
+
+  /* -------------------- scattering length & effective range -------------------- */
+  // exact zero-energy method (neutral, single channel, l=0)
+  function zeroEnergy(ch, opt) {
+    const f = fOf(ch.mu), h = (opt && opt.h) || 0.005, R = (opt && opt.rmatch) || ch.rnuc || 25;
+    const n = Math.round((R + 2) / h);
+    const u = numerovSingle((r) => f * veffSingle(ch, r), h, n);
+    const i1 = Math.round(R / h), i2 = n;
+    const r1 = i1 * h, r2 = i2 * h;
+    const a = (r1 * u[i2] - r2 * u[i1]) / (u[i2] - u[i1]);
+    // effective range r0 = 2 ∫ (psi0^2 - u0^2) dr, psi0 = 1 - r/a, u0 = u normalised to psi0 asymptotically
+    const norm = (1 - r2 / a) / u[i2];
+    let s = 0;
+    for (let i = 0; i <= i1; i++) { const r = i * h, p = 1 - r / a, q = u[i] * norm, w = (i === 0 || i === i1) ? 0.5 : 1; s += w * (p * p - q * q); }
+    return { a, r0: 2 * s * h };
+  }
+
+  function hEta(eta) {
+    let s = 0; const N = 4000;
+    for (let n = 1; n <= N; n++) s += 1 / (n * (n * n + eta * eta));
+    s += 1 / (2 * N * N);
+    return eta * eta * s - Math.log(eta) - PHYS.gammaE;
+  }
+
+  // ERE fit from low-energy phase shifts. Coulomb-modified if ch.Z.
+  function ereFit(ch, opt) {
+    const f = fOf(ch.mu);
+    const Es = ch.Z ? [0.15, 0.3, 0.5, 0.8] : [0.002, 0.01, 0.05, 0.1];
+    const xs = [], ys = [];
+    let aB = null;
+    if (ch.Z) aB = 1 / (ch.Z * PHYS.e2 * f / 2);
+    Es.forEach((E) => {
+      let delta, k;
+      if (ch.type === 'coupled') { const r = phaseCoupled(ch, E, opt); delta = r.deltaA; k = r.k; }
+      else { const r = phaseSingle(ch, E, opt); delta = r.delta; k = r.k; }
+      let y;
+      if (ch.Z) {
+        const eta = 1 / (k * aB);
+        const C2 = 2 * Math.PI * eta / Math.expm1(2 * Math.PI * eta);
+        y = C2 * k / Math.tan(delta) + (2 / aB) * hEta(eta);
+      } else y = k / Math.tan(delta);
+      xs.push(k * k); ys.push(y);
+    });
+    // linear fit y = -1/a + (r/2) x
+    const n = xs.length, mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
+    let sxy = 0, sxx = 0; for (let i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; }
+    const slope = sxy / sxx, icpt = my - slope * mx;
+    return { a: -1 / icpt, r0: 2 * slope };
+  }
+
+  function scatteringParams(ch, opt) {
+    if (ch.type === 'single' && ch.l === 0 && !ch.Z) return zeroEnergy(ch, opt);
+    if (ch.type === 'single' && ch.l !== 0) return null;
+    return ereFit(ch, opt);
+  }
+
+  function polePosition(a, r0, mu) {
+    // pole of k cot(delta) - i k with ERE; returns energy (MeV) and kind
+    const f = fOf(mu);
+    const disc = 1 - 2 * r0 / a;
+    if (disc < 0) return null;
+    const kap = (1 - Math.sqrt(disc)) / r0;
+    return { kappa: kap, E: -kap * kap / f, kind: kap > 0 ? 'bound' : 'virtual' };
+  }
+
+  /* -------------------- analytic checks -------------------- */
+  function squareWellAnalytic(mu, V0, R) {
+    const f = fOf(mu), out = [];
+    const g = (B) => { const k = Math.sqrt(f * (V0 - B)), kap = Math.sqrt(f * B); return k * Math.cos(k * R) + kap * Math.sin(k * R); };
+    const M = 20000; let prev = g(V0 * 1e-12), Bp = V0 * 1e-12;
+    for (let i = 1; i <= M; i++) {
+      const B = V0 * i / M * (1 - 1e-12);
+      const v = g(B);
+      if (Math.sign(v) !== Math.sign(prev)) {
+        let lo = Bp, hi = B, glo = prev;
+        for (let it = 0; it < 100; it++) { const m = 0.5 * (lo + hi), gm = g(m); if (Math.sign(gm) === Math.sign(glo)) { lo = m; glo = gm; } else hi = m; }
+        out.push(-0.5 * (lo + hi));
+      }
+      prev = v; Bp = B;
+    }
+    return out.sort((x, y) => x - y);
+  }
+  function hulthenAnalytic(mu, V0, a) {
+    const f = fOf(mu), gg = f * V0 * a * a, out = [];
+    for (let n = 1; n * n < gg; n++) { const kap = (gg - n * n) / (2 * n * a); out.push(-kap * kap / f); }
+    return out;
+  }
+
+  /* -------------------- n + ortho/para H2 (Schwinger–Teller, k -> 0) -------------------- */
+  function orthoPara(at, as, massFactor) {
+    const ac = (3 * at + as) / 4, ad = (at - as);
+    const m2 = massFactor * massFactor;
+    const para = 4 * Math.PI * m2 * 4 * ac * ac;                 // fm^2
+    const ortho = 4 * Math.PI * m2 * (4 * ac * ac + ad * ad / 2);  // fm^2
+    const free = Math.PI * (3 * at * at + as * as);               // free np, k->0
+    return { ac, para: para / 100, ortho: ortho / 100, free: free / 100, ratio: ortho / para };
+  }
+
+  /* -------------------- channel factory & parameter fitting -------------------- */
+  // spec: { mu, Z, l, pot (key in POTENTIALS or COUPLED), params, lam }
+  function makeChannel(spec) {
+    const P = { ...spec.params };
+    if (COUPLED[spec.pot]) {
+      const C = COUPLED[spec.pot];
+      return { type: 'coupled', mu: spec.mu, lam: spec.lam == null ? 1 : spec.lam, W: (r) => C.W(r, P), rnuc: spec.rmatch || 25, Z: 0, l: 0 };
+    }
+    const D = POTENTIALS[spec.pot];
+    return { type: 'single', mu: spec.mu, l: spec.l || 0, Z: spec.Z || 0, lam: spec.lam == null ? 1 : spec.lam,
+      Vc: (r) => D.V(r, P), disc: !!D.disc, rnuc: spec.rmatch || Math.max(25, Math.min(60, D.range(P))) };
+  }
+
+  function groundE(spec, rmax) {
+    const bs = boundStates(makeChannel(spec), { h: 0.02, rmax: rmax || 40, maxStates: 1, wavefunctions: false });
+    return bs.states.length ? bs.states[0].E : null;
+  }
+
+  // Adjust spec.params[key] (or spec.lam if key==='lam') so that target is met.
+  // target: {type:'B', value: MeV} or {type:'a', value: fm (negative, unbound)}
+  function fitParam(spec, key, target, range) {
+    const set = (v) => { const s2 = { ...spec, params: { ...spec.params } }; if (key === 'lam') s2.lam = v; else s2.params[key] = v; return s2; };
+    let lo = range ? range[0] : 1e-3, hi = range ? range[1] : 1e5;
+    const tooWeak = (v) => {
+      const s2 = set(v);
+      const E0 = groundE(s2, target.type === 'B' ? 40 : 60);
+      if (target.type === 'B') return E0 === null || E0 > -target.value;
+      if (E0 !== null) return false;
+      const sp = scatteringParams(makeChannel(s2), { h: 0.01 });
+      return sp.a > target.value;
+    };
+    if (tooWeak(hi)) return null;
+    for (let it = 0; it < 60; it++) {
+      const mid = Math.sqrt(lo * hi);
+      if (tooWeak(mid)) lo = mid; else hi = mid;
+      if (hi / lo - 1 < 1e-9) break;
+    }
+    return Math.sqrt(lo * hi);
+  }
+
+  // smallest strength multiplier lambda that produces a bound state (threshold)
+  function criticalLambda(spec) {
+    const has = (lam) => groundE({ ...spec, lam }, 80) !== null;
+    let lo = 0.01, hi = 1;
+    if (has(hi)) { lo = 0.01; if (has(lo)) return lo; }
+    else { lo = 1; hi = 2; let n = 0; while (!has(hi) && n < 12) { lo = hi; hi *= 2; n++; } if (n >= 12) return null; }
+    for (let it = 0; it < 40; it++) { const m = 0.5 * (lo + hi); if (has(m)) hi = m; else lo = m; }
+    return 0.5 * (lo + hi);
+  }
+
+  global.NNLab = { makeChannel, fitParam, criticalLambda, groundE, PHYS, POTENTIALS, COUPLED, fOf, veffSingle, veffCoupled, boundStates, deuteronObservables,
+    phaseSingle, phaseCoupled, unwrap, zeroEnergy, ereFit, scatteringParams, polePosition, squareWellAnalytic,
+    hulthenAnalytic, orthoPara, asymFG, wrapPi, bbToBar };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>(function () {
+  'use strict';
+  const L = window.NNLab, P = L.PHYS;
+  const muNP = P.mp * P.mn / (P.mp + P.mn);
+  const DEG = 180 / Math.PI;
+  const $ = (s) => document.querySelector(s);
+  const fmt = (x, d = 4) => (x == null || !isFinite(x)) ? '—' : (Math.abs(x) >= 1e5 || (Math.abs(x) < 1e-3 && x !== 0) ? x.toExponential(3) : x.toFixed(d));
+
+  /* ---------------- reference data ---------------- */
+  const PWA = {
+    np1S0: [[1, 62.07], [5, 63.63], [10, 59.96], [25, 50.90], [50, 40.54], [100, 26.78], [150, 16.94], [200, 8.94], [250, 1.96], [300, -4.46]],
+    pp1S0: [[1, 32.68], [5, 54.83], [10, 55.22], [25, 48.67], [50, 38.90], [100, 24.97], [150, 14.75], [200, 6.55], [250, -0.31], [300, -6.15]],
+    S1: [[1, 147.75], [5, 118.18], [10, 102.61], [25, 80.63], [50, 62.77], [100, 43.23], [150, 30.72], [200, 21.22], [250, 13.39], [300, 6.60]],
+    D1: [[1, -0.005], [5, -0.183], [10, -0.677], [25, -2.799], [50, -6.433], [100, -12.23], [150, -16.48], [200, -19.71], [250, -22.21], [300, -24.14]],
+    E1: [[1, 0.105], [5, 0.672], [10, 1.159], [25, 1.793], [50, 2.109], [100, 2.42], [150, 2.75], [200, 3.13], [250, 3.56], [300, 4.03]]
+  };
+  const DEUT_EXP = { B: 2.224575, rd: 1.975, Q: 0.2859, mud: 0.857438, eta: 0.0256, AS: 0.8846 };
+
+  /* ---------------- systems & default parameters ---------------- */
+  const CENTRAL = ['square', 'exponential', 'yukawa', 'hulthen', 'gaussian', 'woodssaxon', 'malfliettjon'];
+  const FIT = {
+    deut: { square: 36.5674, exponential: 176.6458, yukawa: 48.9278, hulthen: 72.5432, gaussian: 70.9069, woodssaxon: 57.3485, malfliettjon: 626.885 },
+    np: { square: 24.0687, exponential: 113.6732, yukawa: 31.5168, hulthen: 47.5324, gaussian: 46.1859, woodssaxon: 36.8678, malfliettjon: 513.968 },
+    pp: { square: 23.8935, exponential: 111.6891, yukawa: 30.5507, hulthen: 46.5142, gaussian: 45.724, woodssaxon: 36.4221, malfliettjon: 507.108 },
+    nn: { square: 23.6648, exponential: 111.5421, yukawa: 30.8734, hulthen: 46.6275, gaussian: 45.3785, woodssaxon: 36.2068, malfliettjon: 509.734 }
+  };
+  function defaultParams(sys, pot) {
+    const v = (FIT[sys] || FIT.np)[pot];
+    switch (pot) {
+      case 'square': return { V0: v || 50, R: 2.0 };
+      case 'exponential': return { V0: v || 150, a: 0.7 };
+      case 'yukawa': return { V0: v || 50, a: 1.4286 };
+      case 'hulthen': return { V0: v || 60, a: 0.9 };
+      case 'gaussian': return { V0: v || 60, a: 1.5 };
+      case 'woodssaxon': return { V0: v || 50, R: 1.5, d: 0.4 };
+      case 'malfliettjon': return { VR: 1438.72, muR: 3.11, VA: v || 600, muA: 1.55 };
+      case 'reid3s1': return { lamT: 1 };
+      case 'gaussopep': return { V0: 54.5843, a: 1.2, Vpi: 10.46, c: 1.0 };
+      default: return {};
+    }
+  }
+  const SYSTEMS = {
+    deut: { name: 'Deuteron', sub: 'n + p · ³S₁–³D₁ · T = 0', mu: muNP, Z: 0, m1: P.mn, m2: P.mp,
+      pots: ['reid3s1', 'gaussopep', ...CENTRAL], def: 'reid3s1', target: { type: 'B', value: 2.224575, label: 'B = 2.224575 MeV' },
+      exp: { a: 5.419, r: 1.753 }, spin: '³' },
+    np: { name: 'np singlet', sub: 'n + p · ¹S₀ · T = 1', mu: muNP, Z: 0, m1: P.mn, m2: P.mp,
+      pots: ['malfliettjon', 'reid1s0', ...CENTRAL.filter((p) => p !== 'malfliettjon')], def: 'malfliettjon',
+      target: { type: 'a', value: -23.740, label: 'a = −23.740 fm' }, exp: { a: -23.740, r: 2.77 }, spin: '¹', ref: 'np1S0' },
+    pp: { name: 'Diproton', sub: 'p + p · ¹S₀ · nuclear + Coulomb', mu: P.mp / 2, Z: 1, m1: P.mp, m2: P.mp, identical: true,
+      pots: ['reid1s0', ...CENTRAL], def: 'reid1s0', target: { type: 'a', value: -7.806, label: 'a_pp = −7.806 fm' },
+      exp: { a: -7.806, r: 2.794 }, spin: '¹', ref: 'pp1S0' },
+    nn: { name: 'Dineutron', sub: 'n + n · ¹S₀', mu: P.mn / 2, Z: 0, m1: P.mn, m2: P.mn, identical: true,
+      pots: ['malfliettjon', 'reid1s0', ...CENTRAL.filter((p) => p !== 'malfliettjon')], def: 'malfliettjon',
+      target: { type: 'a', value: -18.9, label: 'a_nn ≈ −18.9 fm' }, exp: { a: -18.9, r: 2.75 }, spin: '¹' },
+    custom: { name: 'Custom pair', sub: 'any masses, charges and ℓ', custom: true, pots: [...CENTRAL, 'reid1s0'], def: 'woodssaxon', spin: '' },
+    h2: { name: 'n + ortho/para H₂', sub: 'spin dependence of the np force', h2: true }
+  };
+  const LNAME = 'SPDFGHIK';
+
+  /* ---------------- state ---------------- */
+  const S = {
+    sys: 'deut',
+    per: {},
+    custom: { m1: 938.918, m2: 938.918, Z1: 0, Z2: 0 },
+    num: { h: 0.01, rmax: 40, rmatch: 25, maxStates: 8 },
+    scat: { Tmin: 0.5, Tmax: 350, n: 60, Lmax: 2 },
+    scan: { key: 'lam', from: 0.2, to: 3, steps: 40 },
+    h2: { at: 5.419, as: -23.740, mf: 4 / 3 },
+    tab: 'bound',
+    last: {}
+  };
+  Object.keys(SYSTEMS).forEach((k) => {
+    const s = SYSTEMS[k]; if (s.h2) return;
+    S.per[k] = { pot: s.def, params: {}, lam: 1, l: 0 };
+    s.pots.forEach((p) => { S.per[k].params[p] = defaultParams(k, p); });
+  });
+  S.per.custom.params.woodssaxon = { V0: 50, R: 2.0, d: 0.5 };
+  try { const t = localStorage.getItem('nnlab-tab'); if (t) S.tab = t; } catch (e) { /* storage unavailable */ }
+
+  const cur = () => S.per[S.sys];
+  const sysDef = () => SYSTEMS[S.sys];
+  function potDef(key) { return L.COUPLED[key] || L.POTENTIALS[key]; }
+  function isCoupled() { return !!L.COUPLED[cur().pot]; }
+  function massesFor(sys) {
+    const s = SYSTEMS[sys];
+    if (s.custom) { const c = S.custom; return { m1: c.m1, m2: c.m2, mu: c.m1 * c.m2 / (c.m1 + c.m2), Z: c.Z1 * c.Z2 }; }
+    return { m1: s.m1, m2: s.m2, mu: s.mu, Z: s.Z };
+  }
+  function specFor(sys, overrides) {
+    const st = S.per[sys], m = massesFor(sys);
+    const sp = { mu: m.mu, Z: m.Z, l: st.l, pot: st.pot, params: { ...st.params[st.pot] }, lam: st.lam, rmatch: S.num.rmatch };
+    return Object.assign(sp, overrides || {});
+  }
+  function channelLabel() {
+    const s = sysDef(), st = cur();
+    if (isCoupled()) return '³S₁–³D₁';
+    const spin = s.custom ? '' : s.spin;
+    const J = s.spin === '¹' ? st.l : (st.l === 0 ? 1 : 'J');
+    return s.custom ? 'ℓ = ' + st.l + ' (' + LNAME[st.l] + ')' : spin + LNAME[st.l] + (typeof J === 'number' ? subscript(J) : '_J');
+  }
+  function subscript(n) { return String(n).split('').map((d) => '₀₁₂₃₄₅₆₇₈₉'[+d]).join(''); }
+
+  /* ---------------- plotting ---------------- */
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  const SERIES = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6'];
+  function niceTicks(lo, hi, n) {
+    const span = hi - lo; if (!(span > 0)) return [lo];
+    const step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+    const r = step0 / mag, step = (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag;
+    const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9 * step; v += step) out.push(Math.abs(v) < 1e-12 * step ? 0 : v);
+    return out;
+  }
+  const plots = new Map();
+  function plot(canvas, cfg) { plots.set(canvas, cfg); drawPlot(canvas, cfg); }
+  function drawPlot(canvas, cfg) {
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    if (!W || !H) return;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    const g = canvas.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    const ink = css('--ink'), muted = css('--muted'), line = css('--grid'), mono = css('--f-mono');
+    const padL = 58, padR = 14, padT = 14, padB = 40;
+    const pw = W - padL - padR, ph = H - padT - padB;
+    let xs = [], ys = [];
+    cfg.series.forEach((s) => { s.x.forEach((v, i) => { if (isFinite(v) && isFinite(s.y[i])) { xs.push(v); ys.push(s.y[i]); } }); });
+    (cfg.hlines || []).forEach((h) => ys.push(h.y));
+    let xmin = cfg.xmin != null ? cfg.xmin : Math.min(...xs), xmax = cfg.xmax != null ? cfg.xmax : Math.max(...xs);
+    let ymin = cfg.ymin != null ? cfg.ymin : Math.min(...ys), ymax = cfg.ymax != null ? cfg.ymax : Math.max(...ys);
+    if (!isFinite(xmin) || !isFinite(xmax)) { xmin = 0; xmax = 1; }
+    if (!isFinite(ymin) || !isFinite(ymax)) { ymin = 0; ymax = 1; }
+    if (xmax === xmin) xmax = xmin + 1;
+    if (ymax === ymin) { ymax += 1; ymin -= 1; }
+    const ylog = !!cfg.ylog;
+    if (ylog) { ymin = Math.log10(Math.max(ymin, 1e-6)); ymax = Math.log10(Math.max(ymax, 1e-5)); if (ymax - ymin < 1) ymax = ymin + 1; ymin = Math.floor(ymin); ymax = Math.ceil(ymax); }
+    else if (cfg.ymin == null || cfg.ymax == null) { const pad = 0.06 * (ymax - ymin); if (cfg.ymin == null) ymin -= pad; if (cfg.ymax == null) ymax += pad; }
+    const X = (v) => padL + (v - xmin) / (xmax - xmin) * pw;
+    const Y = (v) => padT + (1 - ((ylog ? Math.log10(Math.max(v, 1e-30)) : v) - ymin) / (ymax - ymin)) * ph;
+    g.font = '11px ' + mono; g.lineWidth = 1;
+    // grid + ticks
+    const xt = niceTicks(xmin, xmax, Math.max(3, Math.floor(pw / 80)));
+    const yt = ylog ? Array.from({ length: ymax - ymin + 1 }, (_, i) => ymin + i) : niceTicks(ymin, ymax, Math.max(3, Math.floor(ph / 45)));
+    g.strokeStyle = line; g.fillStyle = muted; g.textAlign = 'center'; g.textBaseline = 'top';
+    xt.forEach((v) => { const x = X(v); g.beginPath(); g.moveTo(x, padT); g.lineTo(x, padT + ph); g.stroke(); g.fillText(fmtTick(v), x, padT + ph + 6); });
+    g.textAlign = 'right'; g.textBaseline = 'middle';
+    yt.forEach((v) => { const y = padT + (1 - (v - ymin) / (ymax - ymin)) * ph; g.beginPath(); g.moveTo(padL, y); g.lineTo(padL + pw, y); g.stroke(); g.fillText(ylog ? '10' + supNum(v) : fmtTick(v), padL - 6, y); });
+    // zero line
+    if (!ylog && ymin < 0 && ymax > 0) { g.strokeStyle = muted; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(padL, Y(0)); g.lineTo(padL + pw, Y(0)); g.stroke(); g.setLineDash([]); }
+    g.strokeStyle = muted; g.strokeRect(padL + 0.5, padT + 0.5, pw, ph);
+    // axis labels
+    g.fillStyle = ink; g.font = '12px ' + css('--f-body'); g.textAlign = 'center'; g.textBaseline = 'bottom';
+    g.fillText(cfg.xlabel || '', padL + pw / 2, H - 4);
+    g.save(); g.translate(13, padT + ph / 2); g.rotate(-Math.PI / 2); g.textBaseline = 'middle'; g.fillText(cfg.ylabel || '', 0, 0); g.restore();
+    // clip
+    g.save(); g.beginPath(); g.rect(padL, padT, pw, ph); g.clip();
+    (cfg.hlines || []).forEach((h) => {
+      g.strokeStyle = css(h.color || '--s2'); g.lineWidth = h.width || 1.6; g.setLineDash(h.dash || []);
+      g.beginPath(); g.moveTo(X(h.x0 != null ? h.x0 : xmin), Y(h.y)); g.lineTo(X(h.x1 != null ? h.x1 : xmax), Y(h.y)); g.stroke(); g.setLineDash([]);
+      if (h.label) { g.fillStyle = css(h.color || '--s2'); g.font = '11px ' + mono; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillText(h.label, padL + pw - 4, Y(h.y) - 2); }
+    });
+    cfg.series.forEach((s, si) => {
+      const col = css(s.color || SERIES[si % SERIES.length]);
+      g.strokeStyle = col; g.fillStyle = col; g.lineWidth = s.width || 2; g.setLineDash(s.dash || []);
+      if (s.points) {
+        s.x.forEach((v, i) => { if (!isFinite(s.y[i])) return; const x = X(v), y = Y(s.y[i]);
+          g.beginPath(); if (s.shape === 'square') g.rect(x - 3.5, y - 3.5, 7, 7); else g.arc(x, y, 3.6, 0, 2 * Math.PI);
+          if (s.hollow) { g.lineWidth = 1.6; g.stroke(); } else g.fill(); });
+      } else {
+        g.beginPath(); let pen = false;
+        s.x.forEach((v, i) => { const yv = s.y[i]; if (!isFinite(yv) || (ylog && yv <= 0)) { pen = false; return; } const x = X(v), y = Y(yv); if (pen) g.lineTo(x, y); else { g.moveTo(x, y); pen = true; } });
+        g.stroke();
+      }
+      g.setLineDash([]);
+    });
+    g.restore();
+    // legend
+    const items = cfg.series.filter((s) => s.label);
+    if (items.length) {
+      g.font = '12px ' + css('--f-body'); g.textBaseline = 'middle'; g.textAlign = 'left';
+      let x = padL + 10, y = padT + 12;
+      items.forEach((s) => {
+        const si = cfg.series.indexOf(s), col = css(s.color || SERIES[si % SERIES.length]);
+        const w = g.measureText(s.label).width + 30;
+        if (x + w > padL + pw) { x = padL + 10; y += 17; }
+        g.fillStyle = css('--panel'); g.globalAlpha = 0.85; g.fillRect(x - 4, y - 8, w, 16); g.globalAlpha = 1;
+        g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 2;
+        if (s.points) { g.beginPath(); g.arc(x + 9, y, 3.5, 0, 2 * Math.PI); if (s.hollow) g.stroke(); else g.fill(); }
+        else { g.setLineDash(s.dash || []); g.beginPath(); g.moveTo(x, y); g.lineTo(x + 20, y); g.stroke(); g.setLineDash([]); }
+        g.fillStyle = ink; g.fillText(s.label, x + 25, y); x += w + 8;
+      });
+    }
+  }
+  function fmtTick(v) { const a = Math.abs(v); if (a === 0) return '0'; if (a >= 1e4 || a < 1e-2) return v.toExponential(0); return String(+v.toPrecision(4)); }
+  function supNum(n) { return String(n).split('').map((c) => (c === '-' ? '⁻' : '⁰¹²³⁴⁵⁶⁷⁸⁹'[+c])).join(''); }
+  function redrawAll() { plots.forEach((cfg, c) => { if (c.isConnected) drawPlot(c, cfg); }); }
+  window.addEventListener('resize', () => { clearTimeout(redrawAll.t); redrawAll.t = setTimeout(redrawAll, 120); });
+  try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redrawAll); } catch (e) { /* old browsers */ }
+  new MutationObserver(redrawAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  /* ---------------- controls ---------------- */
+  function renderSystems() {
+    const box = $('#sys-list'); box.innerHTML = '';
+    Object.entries(SYSTEMS).forEach(([k, s]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'sys' + (S.sys === k ? ' on' : ''); b.id = 'sys-' + k;
+      b.setAttribute('aria-pressed', S.sys === k);
+      b.innerHTML = '<span class="sys-name">' + s.name + '</span><span class="sys-sub">' + s.sub + '</span>';
+      b.onclick = () => { S.sys = k; if (s.h2) S.tab = 'h2'; else if (S.tab === 'h2') S.tab = 'bound'; renderAll(); solveSoon(); };
+      box.appendChild(b);
+    });
+  }
+  function renderInteraction() {
+    const s = sysDef(), wrap = $('#interaction');
+    if (s.h2) { wrap.hidden = true; $('#numerics').hidden = true; $('#custom-box').hidden = true; return; }
+    wrap.hidden = false; $('#numerics').hidden = false;
+    const st = cur();
+    const sel = $('#pot');
+    sel.innerHTML = s.pots.map((p) => '<option value="' + p + '"' + (p === st.pot ? ' selected' : '') + '>' + potDef(p).name + '</option>').join('');
+    sel.onchange = () => { st.pot = sel.value; renderInteraction(); solveSoon(); };
+    const D = potDef(st.pot);
+    $('#formula').textContent = D.formula;
+    const pbox = $('#params'); pbox.innerHTML = '';
+    D.params.forEach((pp) => {
+      const id = 'p-' + pp.k;
+      const row = document.createElement('label'); row.className = 'field'; row.htmlFor = id;
+      row.innerHTML = '<span>' + pp.label + (pp.unit ? ' <em>' + pp.unit + '</em>' : '') + '</span><input id="' + id + '" type="number" step="any" value="' + st.params[st.pot][pp.k] + '">';
+      row.querySelector('input').onchange = (e) => { const v = parseFloat(e.target.value); if (isFinite(v)) { st.params[st.pot][pp.k] = v; solveSoon(); } };
+      pbox.appendChild(row);
+    });
+    if (!D.params.length) pbox.innerHTML = '<p class="note">Fixed published parameters. Use the strength factor λ to explore.</p>';
+    $('#lam').value = st.lam;
+    $('#lam').onchange = (e) => { const v = parseFloat(e.target.value); if (isFinite(v)) { st.lam = v; solveSoon(); } };
+    // partial wave
+    const lsel = $('#lwave');
+    if (isCoupled()) { $('#lwave-row').hidden = true; }
+    else {
+      $('#lwave-row').hidden = false;
+      lsel.innerHTML = [0, 1, 2, 3, 4, 5, 6].map((l) => '<option value="' + l + '"' + (l === st.l ? ' selected' : '') + '>ℓ = ' + l + ' (' + LNAME[l] + ')</option>').join('');
+      lsel.onchange = () => { st.l = +lsel.value; renderInteraction(); solveSoon(); };
+    }
+    const warn = $('#pauli');
+    warn.hidden = !(s.identical && st.l % 2 === 1);
+    // fit
+    const fitBtn = $('#fit-btn'), fitSel = $('#fit-key');
+    if (s.target && st.l === 0) {
+      $('#fit-row').hidden = false;
+      $('#fit-target').textContent = s.target.label;
+      const keys = D.params.filter((p) => /^V|^lamT$/.test(p.k)).map((p) => p.k);
+      fitSel.innerHTML = ['lam', ...keys].map((k) => '<option value="' + k + '">' + (k === 'lam' ? 'λ' : D.params.find((p) => p.k === k).label) + '</option>').join('');
+      fitSel.value = keys.includes('VA') ? 'VA' : keys.includes('V0') ? 'V0' : (keys[0] || 'lam');
+      fitBtn.onclick = doFit;
+    } else $('#fit-row').hidden = true;
+    // custom masses
+    const cb = $('#custom-box'); cb.hidden = !s.custom;
+    if (s.custom) {
+      ['m1', 'm2', 'Z1', 'Z2'].forEach((k) => { const el = $('#c-' + k); el.value = S.custom[k]; el.onchange = () => { const v = parseFloat(el.value); if (isFinite(v)) { S.custom[k] = v; solveSoon(); } }; });
+    }
+    ['h', 'rmax', 'rmatch', 'maxStates'].forEach((k) => { const el = $('#n-' + k); el.value = S.num[k]; el.onchange = () => { const v = parseFloat(el.value); if (isFinite(v) && v > 0) { S.num[k] = v; solveSoon(); } }; });
+  }
+  function doFit() {
+    const s = sysDef(), st = cur(), key = $('#fit-key').value;
+    setStatus('Fitting ' + (key === 'lam' ? 'λ' : key) + ' to ' + s.target.label + '…');
+    setTimeout(() => {
+      const spec = specFor(S.sys);
+      const v = L.fitParam(spec, key, s.target, key === 'lam' ? [0.01, 50] : [0.01, 1e5]);
+      if (v == null) { setStatus('No value in range reproduces ' + s.target.label + '. Try another parameter.', true); return; }
+      if (key === 'lam') st.lam = +v.toPrecision(7); else st.params[st.pot][key] = +v.toPrecision(7);
+      renderInteraction(); solveNow();
+      setStatus('Fitted ' + (key === 'lam' ? 'λ' : key) + ' = ' + (+v.toPrecision(7)) + ' to ' + s.target.label + '.');
+    }, 20);
+  }
+
+  /* ---------------- tabs ---------------- */
+  const TABS = [['bound', 'Bound states'], ['scat', 'Scattering'], ['scan', 'Parameter scan'], ['h2', 'n + H₂'], ['theory', 'Theory & method']];
+  function renderTabs() {
+    const bar = $('#tabs'); bar.innerHTML = '';
+    TABS.forEach(([k, n]) => {
+      if (sysDef().h2 && (k === 'bound' || k === 'scat' || k === 'scan')) return;
+      const b = document.createElement('button'); b.type = 'button'; b.role = 'tab'; b.id = 'tab-' + k;
+      b.className = 'tab' + (S.tab === k ? ' on' : ''); b.textContent = n; b.setAttribute('aria-selected', S.tab === k);
+      b.onclick = () => { S.tab = k; try { localStorage.setItem('nnlab-tab', k); } catch (e) { /* ignore */ } renderTabs(); showPanel(); if (k === 'scat' && !S.last.scat) runScattering(); if (k === 'scan' && !S.last.scan) runScan(); };
+      bar.appendChild(b);
+    });
+    showPanel();
+  }
+  function showPanel() { TABS.forEach(([k]) => { $('#panel-' + k).hidden = S.tab !== k; }); requestAnimationFrame(redrawAll); }
+
+  function setStatus(t, bad) { const el = $('#status'); el.textContent = t; el.classList.toggle('bad', !!bad); }
+
+  /* ---------------- bound states ---------------- */
+  let solveTimer = null;
+  function solveSoon() { clearTimeout(solveTimer); setStatus('Solving…'); solveTimer = setTimeout(solveNow, 60); }
+  function solveNow() {
+    S.last = {};
+    $('#crumb').textContent = sysDef().h2 ? 'n + H₂ · Schwinger–Teller' : sysDef().name + ' · ' + channelLabel() + ' · ' + potDef(cur().pot).name;
+    if (sysDef().h2) { renderH2(); setStatus('Ready.'); return; }
+    const t0 = performance.now();
+    try {
+      runBound();
+      if (S.tab === 'scat') runScattering();
+      if (S.tab === 'scan') runScan();
+      renderH2();
+      setStatus('Solved in ' + Math.round(performance.now() - t0) + ' ms.');
+    } catch (e) { console.error(e); setStatus('The solver stopped: ' + e.message + '. Check that parameters are physical numbers.', true); }
+  }
+
+  function runBound() {
+    const spec = specFor(S.sys), ch = L.makeChannel(spec), m = massesFor(S.sys);
+    const bs = L.boundStates(ch, { h: S.num.h, rmax: S.num.rmax, maxStates: S.num.maxStates });
+    S.last.bound = { bs, ch, spec };
+    const states = bs.states;
+    // analytic comparison
+    let ana = null;
+    if (!ch.Z && spec.l === 0 && !isCoupled()) {
+      const p = spec.params, lamV = (v) => v * spec.lam;
+      if (spec.pot === 'square') ana = L.squareWellAnalytic(m.mu, lamV(p.V0), p.R);
+      if (spec.pot === 'hulthen') ana = L.hulthenAnalytic(m.mu, lamV(p.V0), p.a);
+    }
+    // scattering length (l=0)
+    let sp = null;
+    if (spec.l === 0) { try { sp = L.scatteringParams(ch, { h: 0.01, rmatch: S.num.rmatch }); } catch (e) { sp = null; } }
+    S.last.sp = sp;
+    // summary
+    const sum = $('#bound-summary');
+    const chips = [];
+    chips.push(chip(states.length ? 'good' : 'warn', states.length + ' bound state' + (states.length === 1 ? '' : 's'), 'in ' + channelLabel()));
+    if (states.length) chips.push(chip('', fmt(states[0].E, 5) + ' MeV', 'ground-state energy'));
+    if (sp) {
+      chips.push(chip('', fmt(sp.a, 3) + ' fm', (ch.Z ? 'Coulomb-corrected ' : '') + 'scattering length a'));
+      chips.push(chip('', fmt(sp.r0, 3) + ' fm', 'effective range r₀'));
+      const pole = L.polePosition(sp.a, sp.r0, m.mu);
+      if (pole && !ch.Z) chips.push(chip(pole.kind === 'virtual' ? 'warn' : 'good', (pole.kind === 'virtual' ? '+' : '') + fmt(Math.abs(pole.E), 4) + ' MeV', pole.kind === 'virtual' ? 'virtual state (pole on 2nd sheet)' : 'bound pole from ERE'));
+    }
+    sum.innerHTML = chips.join('');
+    const expBox = $('#exp-compare');
+    const s = sysDef();
+    if (s.exp && sp && spec.l === 0) expBox.innerHTML = 'Experiment: a = ' + s.exp.a + ' fm, r₀ = ' + s.exp.r + ' fm' + (s.target && s.target.type === 'B' ? ', B = 2.224575 MeV' : '') + '.';
+    else expBox.textContent = '';
+
+    // levels-in-potential plot
+    const rPlot = Math.min(S.num.rmax, Math.max(8, states.length ? Math.min(25, 3 / Math.sqrt(L.fOf(m.mu) * Math.abs(states[states.length - 1].E)) + 3) : 10));
+    const xs = [], vS = [], vD = [], vT = [];
+    for (let r = 0.05; r <= rPlot; r += rPlot / 500) {
+      xs.push(r);
+      if (isCoupled()) { const M = L.veffCoupled(ch, r); vS.push(M[0]); vD.push(M[2]); vT.push(M[1] / (2 * Math.SQRT2)); }
+      else vS.push(L.veffSingle(ch, r));
+    }
+    let Vmin = Math.min(...vS.filter(isFinite), ...(isCoupled() ? vD : []));
+    const Emin = states.length ? states[0].E : 0;
+    let ylo = Math.min(Vmin, Emin) * 1.15; if (ylo > -5) ylo = -5;
+    const yhi = Math.max(10, Math.abs(ylo) * 0.6);
+    const series = isCoupled()
+      ? [{ x: xs, y: vS, label: 'V_C (³S₁)', color: '--s1' }, { x: xs, y: vD, label: 'V_DD + 6ħ²/2μr² (³D₁)', color: '--s3', dash: [6, 4] }, { x: xs, y: vT, label: 'V_T tensor', color: '--s4', width: 1.5 }]
+      : [{ x: xs, y: vS, label: 'V_eff(r)' + (ch.Z ? ' incl. Coulomb' : '') + (spec.l ? ' + centrifugal' : ''), color: '--s1' }];
+    const hl = states.map((st, i) => ({ y: st.E, color: '--s2', label: 'E' + subscript(i) + ' = ' + fmt(st.E, 4), width: 1.8 }));
+    plot($('#cv-levels'), { series, hlines: hl, xmin: 0, xmax: rPlot, ymin: ylo, ymax: yhi, xlabel: 'r (fm)', ylabel: 'energy (MeV)' });
+
+    // wavefunctions
+    const wfSeries = [];
+    const rW = Math.min(S.num.rmax, Math.max(rPlot, 10));
+    states.slice(0, 6).forEach((st, i) => {
+      const { r, u, w } = st.wf; const X = [], Yu = [], Yw = [];
+      const stp = Math.max(1, Math.floor(r.length / 600));
+      for (let j = 0; j < r.length; j += stp) { if (r[j] > rW) break; X.push(r[j]); Yu.push(u[j]); if (w) Yw.push(w[j]); }
+      wfSeries.push({ x: X, y: Yu, label: (w ? 'u(r) S-wave' : 'u' + subscript(i) + '(r)'), color: SERIES[i % 6] });
+      if (w) wfSeries.push({ x: X, y: Yw, label: 'w(r) D-wave', color: '--s3', dash: [6, 4] });
+    });
+    if (wfSeries.length) plot($('#cv-wf'), { series: wfSeries, xmin: 0, xmax: rW, xlabel: 'r (fm)', ylabel: 'u(r) (fm⁻¹ᐟ²), ∫(u²+w²)dr = 1' });
+    else plot($('#cv-wf'), { series: [], xmin: 0, xmax: rW, ymin: -1, ymax: 1, xlabel: 'r (fm)', ylabel: 'no bound state to draw' });
+
+    // table
+    const tb = $('#bound-table tbody');
+    if (!states.length) {
+      tb.innerHTML = '<tr><td colspan="7" class="empty">No bound state for these parameters. Raise V₀ or λ, or run "Find binding threshold" below to see how much extra attraction binds this system.</td></tr>';
+    } else {
+      tb.innerHTML = states.map((st, i) => {
+        let r2 = 0; const { r, u, w } = st.wf, h = r[1] - r[0];
+        for (let j = 0; j < r.length; j++) r2 += r[j] * r[j] * (u[j] * u[j] + (w ? w[j] * w[j] : 0));
+        const rms = Math.sqrt(r2 * h);
+        const a = ana && ana[i] != null ? ana[i] : null;
+        return '<tr><td>' + i + '</td><td>' + (st.nodes ?? '—') + '</td><td class="num">' + fmt(st.E, 6) + '</td><td class="num">' + fmt(-st.E, 6) + '</td><td class="num">' + fmt(rms, 3) + '</td><td class="num">' + (a != null ? fmt(a, 6) : '—') + '</td><td class="num">' + (a != null ? fmt(Math.abs(st.E - a), 2) : '—') + '</td></tr>';
+      }).join('');
+    }
+    $('#ana-note').hidden = !ana;
+
+    // deuteron observables
+    const dbox = $('#deut-box');
+    if (S.sys === 'deut' && states.length) {
+      dbox.hidden = false;
+      const o = L.deuteronObservables(ch, states[0]);
+      const rows = [
+        ['Binding energy B', 'MeV', o.B, DEUT_EXP.B, 6],
+        ['Matter radius r_d = ½⟨r²⟩^½', 'fm', o.rd, DEUT_EXP.rd, 4],
+        ['Quadrupole moment Q', 'fm²', isCoupled() ? o.Q : 0, DEUT_EXP.Q, 4],
+        ['D-state probability P_D', '%', 100 * o.PD, null, 3],
+        ['Magnetic moment μ_d', 'μ_N', o.mud, DEUT_EXP.mud, 4],
+        ['Asymptotic D/S ratio η', '', isCoupled() ? o.eta : 0, DEUT_EXP.eta, 4],
+        ['Asymptotic S normalisation A_S', 'fm⁻¹ᐟ²', o.AS, DEUT_EXP.AS, 4],
+        ['Size 1/κ = ħ/√(2μB)', 'fm', o.size, 4.318, 3]
+      ];
+      $('#deut-table tbody').innerHTML = rows.map((rw) => '<tr><td>' + rw[0] + '</td><td class="num">' + fmt(rw[2], rw[4]) + '</td><td class="num">' + (rw[3] != null ? rw[3] : '4–7 (model)') + '</td><td>' + rw[1] + '</td></tr>').join('');
+      $('#deut-note').textContent = isCoupled()
+        ? 'The tensor force mixes in the ³D₁ wave. That mixing alone produces Q ≠ 0 and the reduction of μ_d below μ_p + μ_n = 0.8798 μ_N.'
+        : 'A purely central potential gives a pure S-wave deuteron: Q = 0, η = 0 and μ_d = μ_p + μ_n. The measured Q and μ_d are the classic evidence for the tensor force. Switch to a Reid or OPEP model to see them appear.';
+    } else dbox.hidden = true;
+    $('#lam-crit').textContent = '';
+  }
+  function chip(kind, big, small) { return '<div class="chip ' + kind + '"><span class="chip-big">' + big + '</span><span class="chip-small">' + small + '</span></div>'; }
+
+  function findThreshold() {
+    setStatus('Searching for the binding threshold…');
+    setTimeout(() => {
+      const spec = specFor(S.sys); spec.lam = 1;
+      const base = cur().lam;
+      const lc = L.criticalLambda(specFor(S.sys, { lam: 1 }));
+      const out = $('#lam-crit');
+      if (lc == null) out.textContent = 'No bound state appears even at 4000× the present strength.';
+      else out.innerHTML = 'A bound state first appears at λ_c = <b>' + fmt(lc, 4) + '</b> (λ multiplies the whole nuclear potential). The present λ = ' + base + ' is ' + (base >= lc ? fmt(base / lc, 3) + '× above' : fmt(lc / base, 3) + '× below') + ' threshold.';
+      setStatus('Threshold found.');
+    }, 20);
+  }
+
+  /* ---------------- scattering ---------------- */
+  function runScattering() {
+    if (sysDef().h2) return;
+    const spec = specFor(S.sys), m = massesFor(S.sys);
+    const { Tmin, Tmax, n, Lmax } = S.scat;
+    const T = []; for (let i = 0; i < n; i++) T.push(Tmin * Math.pow(Tmax / Tmin, i / (n - 1)));
+    const toCM = (t) => t * m.m2 / (m.m1 + m.m2);
+    const series = [], refs = [], sig = new Array(n).fill(0);
+    const tableCols = [];
+    const t0 = performance.now();
+    if (isCoupled()) {
+      const ch = L.makeChannel(spec);
+      const nb = L.boundStates(ch, { h: 0.02, rmax: 40, maxStates: 1, wavefunctions: false }).states.length;
+      const ra = [], rb = [], re = [];
+      T.forEach((t) => { const c = L.phaseCoupled(ch, toCM(t), { h: S.num.h }); ra.push(c.deltaA); rb.push(c.deltaB); re.push(c.eps); });
+      const da = L.unwrap(ra, nb * Math.PI), db = L.unwrap(rb, 0);
+      const d1 = [], d2 = [], e1 = [];
+      T.forEach((t, i) => { const b = L.bbToBar(da[i], db[i], re[i]); d1.push(b.d1 * DEG); d2.push(b.d2 * DEG); e1.push(b.epsBar * DEG);
+        const k = Math.sqrt(L.fOf(m.mu) * toCM(t)); sig[i] = 4 * Math.PI / (k * k) * (Math.sin(da[i]) ** 2 + Math.sin(db[i]) ** 2) / 100; });
+      series.push({ x: T, y: d1, label: 'δ̄(³S₁)', color: '--s1' }, { x: T, y: d2, label: 'δ̄(³D₁)', color: '--s3' }, { x: T, y: e1, label: 'ε̄₁', color: '--s4' });
+      refs.push({ x: PWA.S1.map((p) => p[0]), y: PWA.S1.map((p) => p[1]), points: true, color: '--s1', hollow: true, label: 'PWA93 ³S₁' },
+        { x: PWA.D1.map((p) => p[0]), y: PWA.D1.map((p) => p[1]), points: true, color: '--s3', hollow: true },
+        { x: PWA.E1.map((p) => p[0]), y: PWA.E1.map((p) => p[1]), points: true, color: '--s4', hollow: true });
+      tableCols.push(['δ̄(³S₁)°', d1], ['δ̄(³D₁)°', d2], ['ε̄₁°', e1]);
+    } else {
+      const Ls = []; for (let l = 0; l <= Math.min(Lmax, 6); l++) Ls.push(l);
+      Ls.forEach((l, li) => {
+        const sp2 = { ...spec, l };
+        const ch = L.makeChannel(sp2);
+        const nb = L.boundStates(ch, { h: 0.02, rmax: 40, maxStates: 12, wavefunctions: false }).states.length;
+        const raw = T.map((t) => L.phaseSingle(ch, toCM(t), { h: S.num.h, rmatch: S.num.rmatch }).delta);
+        const d = L.unwrap(raw, nb * Math.PI);
+        const pauli = sysDef().identical && l % 2 === 1;
+        series.push({ x: T, y: d.map((v) => v * DEG), label: 'δ' + subscript(l) + (pauli ? ' (Pauli-forbidden in ¹S)' : ''), color: SERIES[li % 6], dash: pauli ? [4, 4] : [] });
+        T.forEach((t, i) => { const k = Math.sqrt(L.fOf(m.mu) * toCM(t)); if (!pauli) sig[i] += 4 * Math.PI * (2 * l + 1) * Math.sin(d[i]) ** 2 / (k * k) / 100; });
+        tableCols.push(['δ' + subscript(l) + '°', d.map((v) => v * DEG)]);
+      });
+      const s = sysDef();
+      if (s.ref && spec.l === 0) refs.push({ x: PWA[s.ref].map((p) => p[0]), y: PWA[s.ref].map((p) => p[1]), points: true, color: '--s1', hollow: true, label: 'PWA93 ' + (s.ref === 'np1S0' ? 'np' : 'pp') + ' ¹S₀' });
+    }
+    plot($('#cv-phase'), { series: [...series, ...refs], xlabel: 'T_lab (MeV)', ylabel: 'phase shift (degrees)' });
+    plot($('#cv-sigma'), { series: [{ x: T, y: sig, label: 'σ (channel' + (isCoupled() ? ' ³S₁+³D₁' : 's shown') + ')', color: '--s2' }], ylog: true, xlabel: 'T_lab (MeV)', ylabel: 'partial σ (barn)' });
+    // table
+    const head = '<tr><th>T_lab (MeV)</th><th>E_cm (MeV)</th><th>k (fm⁻¹)</th>' + tableCols.map((c) => '<th>' + c[0] + '</th>').join('') + '<th>σ (b)</th></tr>';
+    const rows = T.map((t, i) => '<tr><td class="num">' + fmt(t, 3) + '</td><td class="num">' + fmt(toCM(t), 3) + '</td><td class="num">' + fmt(Math.sqrt(L.fOf(m.mu) * toCM(t)), 4) + '</td>' + tableCols.map((c) => '<td class="num">' + fmt(c[1][i], 3) + '</td>').join('') + '<td class="num">' + fmt(sig[i], 4) + '</td></tr>').join('');
+    $('#scat-table').innerHTML = '<thead>' + head + '</thead><tbody>' + rows + '</tbody>';
+    // low-energy summary
+    let sp = null; try { sp = L.scatteringParams(L.makeChannel({ ...spec, l: 0 }), { h: 0.01, rmatch: S.num.rmatch }); } catch (e) { sp = null; }
+    const parts = [];
+    if (sp) { parts.push(chip('', fmt(sp.a, 3) + ' fm', 'scattering length a' + (spec.Z ? ' (Coulomb-modified ERE)' : ''))); parts.push(chip('', fmt(sp.r0, 3) + ' fm', 'effective range r₀'));
+      if (!spec.Z) parts.push(chip('', fmt(4 * Math.PI * sp.a * sp.a / 100, 3) + ' b', 'σ(E→0) = 4πa² in this channel')); }
+    parts.push(chip('', Math.round(performance.now() - t0) + ' ms', n + ' energies'));
+    $('#scat-summary').innerHTML = parts.join('');
+    $('#scat-note').textContent = isCoupled()
+      ? 'Stapp (bar) phases from the K-matrix eigenphases. δ̄(³S₁) starts at 180°: Levinson\'s theorem counts the deuteron.'
+      : (S.sys === 'pp' ? 'Nuclear phase shifts relative to point-Coulomb waves. ' : '') + 'The same central potential is used in every partial wave, which is a model choice; real NN forces differ by partial wave. Phases are continued in energy with δ(0) = n_bound·π (Levinson).';
+    S.last.scat = true;
+  }
+
+  /* ---------------- parameter scan ---------------- */
+  function renderScanControls() {
+    if (sysDef().h2) return;
+    const D = potDef(cur().pot), sel = $('#scan-key');
+    const opts = [['lam', 'λ (overall strength)'], ...D.params.map((p) => [p.k, p.label + (p.unit ? ' (' + p.unit + ')' : '')])];
+    if (!opts.find((o) => o[0] === S.scan.key)) { S.scan.key = 'lam'; }
+    sel.innerHTML = opts.map((o) => '<option value="' + o[0] + '"' + (o[0] === S.scan.key ? ' selected' : '') + '>' + o[1] + '</option>').join('');
+    sel.onchange = () => { S.scan.key = sel.value; const v = S.scan.key === 'lam' ? cur().lam : cur().params[cur().pot][S.scan.key]; S.scan.from = +(v * 0.2).toPrecision(3); S.scan.to = +(v * 3).toPrecision(3); renderScanControls(); };
+    $('#scan-from').value = S.scan.from; $('#scan-to').value = S.scan.to; $('#scan-steps').value = S.scan.steps;
+    $('#scan-from').onchange = (e) => { S.scan.from = parseFloat(e.target.value); };
+    $('#scan-to').onchange = (e) => { S.scan.to = parseFloat(e.target.value); };
+    $('#scan-steps').onchange = (e) => { S.scan.steps = Math.max(5, Math.min(120, parseInt(e.target.value, 10) || 40)); };
+  }
+  function runScan() {
+    if (sysDef().h2) return;
+    renderScanControls();
+    const { key, from, to, steps } = S.scan;
+    if (!(isFinite(from) && isFinite(to) && to > from)) { setStatus('Scan range needs "from" smaller than "to".', true); return; }
+    const xs = [], levels = [], avals = [];
+    const doA = !isCoupled() && cur().l === 0 && (!massesFor(S.sys).Z || steps <= 40);
+    for (let i = 0; i < steps; i++) {
+      const v = from + (to - from) * i / (steps - 1);
+      const spec = specFor(S.sys);
+      if (key === 'lam') spec.lam = v; else spec.params[key] = v;
+      const ch = L.makeChannel(spec);
+      const bs = L.boundStates(ch, { h: 0.02, rmax: Math.max(S.num.rmax, 60), maxStates: 8, wavefunctions: false });
+      xs.push(v); levels.push(bs.states.map((s) => s.E));
+      if (doA) { try { const a = L.scatteringParams(ch, { h: 0.01, rmatch: S.num.rmatch }).a; avals.push(Math.abs(a) > 300 ? NaN : a); } catch (e) { avals.push(NaN); } }
+    }
+    const nmax = Math.max(0, ...levels.map((l) => l.length));
+    const series = [];
+    for (let j = 0; j < nmax; j++) series.push({ x: xs, y: levels.map((l) => (l[j] != null ? l[j] : NaN)), label: 'level ' + j, color: SERIES[j % 6] });
+    const lbl = key === 'lam' ? 'λ' : potDef(cur().pot).params.find((p) => p.k === key).label;
+    if (series.length) plot($('#cv-scan'), { series, xlabel: lbl, ylabel: 'bound-state energy (MeV)', ymax: 0 });
+    else plot($('#cv-scan'), { series: [], xmin: from, xmax: to, ymin: -1, ymax: 0, xlabel: lbl, ylabel: 'no bound states in this range' });
+    $('#scan-a-wrap').hidden = !doA;
+    if (doA) plot($('#cv-scan-a'), { series: [{ x: xs, y: avals, label: 'scattering length a', color: '--s5' }], xlabel: lbl, ylabel: 'a (fm), clipped at |a| < 300' });
+    // count of levels table
+    const thresholds = [];
+    for (let i = 1; i < xs.length; i++) if (levels[i].length > levels[i - 1].length) thresholds.push(xs[i]);
+    $('#scan-note').textContent = thresholds.length
+      ? 'A new bound state appears near ' + lbl + ' ≈ ' + thresholds.map((t) => fmt(t, 3)).join(', ') + '. At each threshold a passes through ±∞: a large negative a means a state is about to bind.'
+      : 'No new bound state appears in this range.';
+    S.last.scan = true;
+  }
+
+  /* ---------------- n + ortho/para H2 ---------------- */
+  function modelLengths() {
+    const out = {};
+    try {
+      const st = S.per.deut, spT = specFor('deut'); spT.l = 0;
+      out.at = L.scatteringParams(L.makeChannel(spT), { h: 0.01 }).a;
+      out.tName = potDef(st.pot).name;
+    } catch (e) { out.at = null; }
+    try {
+      const st = S.per.np, spS = specFor('np'); spS.l = 0;
+      out.as = L.scatteringParams(L.makeChannel(spS), { h: 0.01 }).a;
+      out.sName = potDef(st.pot).name;
+    } catch (e) { out.as = null; }
+    return out;
+  }
+  function renderH2() {
+    const h = S.h2;
+    $('#h2-at').value = +(+h.at).toFixed(4); $('#h2-as').value = +(+h.as).toFixed(4);
+    $('#h2-mf').value = String(h.mf);
+    const r = L.orthoPara(h.at, h.as, h.mf), rb = L.orthoPara(h.at, Math.abs(h.as), h.mf);
+    $('#h2-out').innerHTML = [
+      chip('', fmt(r.para, 3) + ' b', 'σ(para-H₂), S_pp = 0'),
+      chip('', fmt(r.ortho, 2) + ' b', 'σ(ortho-H₂), S_pp = 1'),
+      chip('', fmt(r.ratio, 3), 'ratio ortho / para'),
+      chip('', fmt(r.free, 3) + ' b', 'free np σ₀ = π(3a_t² + a_s²)'),
+      chip('', fmt(r.ac, 3) + ' fm', 'coherent length (3a_t + a_s)/4')
+    ].join('');
+    $('#h2-flip').innerHTML = 'If the singlet np state were <b>bound</b> (a_s = +' + fmt(Math.abs(h.as), 2) + ' fm), para-H₂ would scatter <b>' + fmt(rb.para, 1) + ' b</b> and the ratio would fall to <b>' + fmt(rb.ratio, 2) + '</b>. The large measured ortho/para ratio is how Schwinger and Teller (1937) and the experiments that followed showed a_s < 0: the singlet deuteron is unbound.';
+    plot($('#cv-h2'), {
+      series: [
+        { x: [1, 2], y: [r.para, r.ortho], points: true, shape: 'square', color: '--s1', label: 'a_s as entered' },
+        { x: [1, 2], y: [rb.para, rb.ortho], points: true, color: '--s5', hollow: true, label: 'a_s sign flipped (bound singlet)' }
+      ], xmin: 0.5, xmax: 2.5, ymin: 0.1, ylog: true, xlabel: 'para-H₂ (left)        ortho-H₂ (right)', ylabel: 'σ (barn), E ≪ 14.7 meV'
+    });
+  }
+  function bindH2() {
+    $('#h2-at').onchange = (e) => { S.h2.at = parseFloat(e.target.value); renderH2(); };
+    $('#h2-as').onchange = (e) => { S.h2.as = parseFloat(e.target.value); renderH2(); };
+    $('#h2-mf').onchange = (e) => { S.h2.mf = parseFloat(e.target.value); renderH2(); };
+    $('#h2-exp').onclick = () => { S.h2.at = 5.419; S.h2.as = -23.740; renderH2(); $('#h2-src').textContent = 'Using measured a_t and a_s.'; };
+    $('#h2-model').onclick = () => {
+      setStatus('Computing a_t and a_s from the deuteron and np-singlet models…');
+      setTimeout(() => {
+        const m = modelLengths();
+        if (m.at != null) S.h2.at = m.at; if (m.as != null) S.h2.as = m.as;
+        renderH2();
+        $('#h2-src').textContent = 'a_t from the Deuteron system (' + m.tName + '), a_s from the np singlet system (' + m.sName + '). Change those systems to see the effect here.';
+        setStatus('Scattering lengths taken from the models.');
+      }, 20);
+    };
+  }
+
+  /* ---------------- boot ---------------- */
+  function renderAll() { renderSystems(); renderInteraction(); renderTabs(); renderScanControls(); }
+  $('#solve').onclick = solveNow;
+  $('#thresh').onclick = findThreshold;
+  $('#scat-run').onclick = () => { S.scat.Tmin = parseFloat($('#t-min').value); S.scat.Tmax = parseFloat($('#t-max').value); S.scat.n = Math.max(5, Math.min(300, parseInt($('#t-n').value, 10) || 60)); S.scat.Lmax = Math.max(0, Math.min(6, parseInt($('#t-L').value, 10) || 0));
+    if (!(S.scat.Tmin > 0 && S.scat.Tmax > S.scat.Tmin)) { setStatus('Energy range needs 0 < T_min < T_max.', true); return; }
+    setStatus('Computing phase shifts…'); setTimeout(() => { runScattering(); setStatus('Phase shifts computed.'); }, 20); };
+  $('#scan-run').onclick = () => { setStatus('Scanning…'); setTimeout(() => { runScan(); setStatus('Scan finished.'); }, 20); };
+  ['t-min', 't-max', 't-n', 't-L'].forEach((id, i) => { $('#' + id).value = [S.scat.Tmin, S.scat.Tmax, S.scat.n, S.scat.Lmax][i]; });
+  bindH2();
+  renderAll();
+  solveNow();
+})();
+</script>
